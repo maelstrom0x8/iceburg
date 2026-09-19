@@ -49,7 +49,7 @@ function computeCommitment(qty: bigint, price: bigint, salt: `0x${string}`): `0x
 
 const MUTED = "text-[var(--color-app-muted)]";
 const INPUT =
-  "w-full rounded-lg border border-[var(--color-app-border)] bg-[var(--color-app-bg)] px-3 py-2.5 text-sm text-white placeholder:text-[var(--color-app-muted)] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent";
+  "w-full rounded-lg border border-[var(--color-app-border)] bg-[var(--color-app-bg)] px-3 py-2.5 text-sm text-[var(--color-app-text)] placeholder:text-[var(--color-app-muted)] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent";
 const LABEL = `mb-1.5 block text-xs font-medium ${MUTED}`;
 
 type Phase = "idle" | "approving" | "committing" | "done" | "error";
@@ -255,13 +255,13 @@ export function CommitPanel() {
         <div className="rounded-lg border border-[var(--color-app-border)] bg-[var(--color-app-bg)] p-3 text-sm">
           <div className="flex justify-between">
             <span className={MUTED}>Escrow</span>
-            <span className="text-white">
+            <span className="text-[var(--color-app-text)] font-medium">
               {formatPrice(estimatedEscrow, decimals)} DUSD
             </span>
           </div>
           <div className="mt-1 flex justify-between">
             <span className={MUTED}>Bond</span>
-            <span className="text-white">
+            <span className="text-[var(--color-app-text)] font-medium">
               {formatPrice(bondRequired, decimals)} DUSD
             </span>
           </div>

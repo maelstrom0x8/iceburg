@@ -27,7 +27,7 @@ export function AppTopBar() {
     <header
       className="sticky top-0 z-50 border-b"
       style={{
-        background: "var(--color-app-bg)",
+        background: "var(--color-app-surface)",
         borderColor: "var(--color-app-border)",
       }}
     >
@@ -38,7 +38,7 @@ export function AppTopBar() {
           className="flex items-center gap-2 shrink-0"
         >
           <IcebergMark />
-          <span className="text-sm font-semibold tracking-tight text-white">
+          <span className="text-sm font-semibold tracking-tight" style={{ color: "var(--color-app-text)" }}>
             Iceburg
           </span>
         </Link>
@@ -51,12 +51,15 @@ export function AppTopBar() {
               to={tab.to}
               className={({ isActive }) =>
                 [
-                  "relative flex items-center px-3 text-sm transition-colors",
+                  "relative flex items-center px-3 text-sm transition-colors font-medium",
                   isActive
-                    ? "text-white"
-                    : "text-[var(--color-app-muted)] hover:text-[var(--color-app-muted-2)]",
+                    ? "font-semibold"
+                    : "hover:opacity-80",
                 ].join(" ")
               }
+              style={({ isActive }) => ({
+                color: isActive ? "var(--color-app-text)" : "var(--color-app-muted)",
+              })}
             >
               {({ isActive }) => (
                 <>

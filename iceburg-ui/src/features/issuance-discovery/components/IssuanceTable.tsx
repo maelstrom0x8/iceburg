@@ -59,7 +59,7 @@ function IssuanceRow({
 
   return (
     <tr
-      className="group relative transition-colors cursor-pointer"
+      className="group relative transition-colors cursor-pointer hover:bg-[var(--color-app-surface-2)]"
       style={{ borderTop: "1px solid var(--color-app-border)" }}
     >
       <td className={TD}>
@@ -68,7 +68,7 @@ function IssuanceRow({
           className="absolute inset-0 z-10"
           aria-label={`View ${tokenName} offering`}
         />
-        <div className="font-medium text-white">{tokenName || "—"}</div>
+        <div className="font-medium" style={{ color: "var(--color-app-text)" }}>{tokenName || "—"}</div>
         <div className="text-xs mt-0.5 font-mono" style={{ color: "var(--color-app-muted)" }}>
           {tokenSymbol}
         </div>
@@ -78,14 +78,14 @@ function IssuanceRow({
       </td>
       <td className={`${TD} tabular-nums font-medium`}>
         {reservePrice !== undefined ? (
-          <span className="text-white">{formatDUSD(reservePrice)}</span>
+          <span style={{ color: "var(--color-app-text)" }}>{formatDUSD(reservePrice)}</span>
         ) : (
           <Skeleton className="w-20" />
         )}
       </td>
       <td className={`${TD} tabular-nums`}>
         {supply !== undefined ? (
-          <span className="text-white">{formatUnits(supply, 18)}</span>
+          <span style={{ color: "var(--color-app-text)" }}>{formatUnits(supply, 18)}</span>
         ) : (
           <Skeleton className="w-16" />
         )}
@@ -99,7 +99,7 @@ function IssuanceRow({
       </td>
       <td className={`${TD} tabular-nums`}>
         {bidCount !== undefined ? (
-          <span className="text-white">{bidCount.toString()}</span>
+          <span style={{ color: "var(--color-app-text)" }}>{bidCount.toString()}</span>
         ) : (
           <Skeleton className="w-8" />
         )}
@@ -141,13 +141,13 @@ export function IssuanceTable() {
   if (issuances.length === 0) {
     return (
       <div className="rounded-xl p-16 text-center space-y-4" style={tableStyle}>
-        <p className="text-lg font-medium text-white">No offerings yet</p>
+        <p className="text-lg font-medium" style={{ color: "var(--color-app-text)" }}>No offerings yet</p>
         <p className="text-sm" style={{ color: "var(--color-app-muted)" }}>
           No sealed-bid auctions have been deployed on this network.
         </p>
         <Link
           to="/app/issue"
-          className="inline-flex items-center gap-2 mt-2 px-4 py-2 rounded-lg text-sm font-semibold text-black transition-colors"
+          className="inline-flex items-center gap-2 mt-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
           style={{ background: "var(--color-accent)" }}
         >
           Create First Offering

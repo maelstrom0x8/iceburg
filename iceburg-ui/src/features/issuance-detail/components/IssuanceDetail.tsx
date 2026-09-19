@@ -72,7 +72,7 @@ export function IssuanceDetail() {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2.5">
-                <h2 className="text-lg font-semibold text-white">
+                <h2 className="text-lg font-semibold" style={{ color: "var(--color-app-text)" }}>
                   {tokenLabel || "Sealed-Bid Offering"}
                 </h2>
                 {state !== undefined && <StateBadge state={state} />}
@@ -86,7 +86,7 @@ export function IssuanceDetail() {
                 <div className="text-xs" style={{ color: "var(--color-app-muted)" }}>
                   Phase Deadline
                 </div>
-                <CountdownTimer deadline={activeDeadline} className="text-base font-semibold text-white mt-0.5" />
+                <CountdownTimer deadline={activeDeadline} className="text-base font-semibold mt-0.5" />
               </div>
             )}
           </div>
@@ -106,7 +106,7 @@ export function IssuanceDetail() {
       <div className="space-y-5">
         {/* Your Info card (Aave-style) */}
         <div className="rounded-xl p-5 space-y-4" style={CARD}>
-          <h3 className="text-sm font-semibold text-white">Offering Parameters</h3>
+          <h3 className="text-sm font-semibold" style={{ color: "var(--color-app-text)" }}>Offering Parameters</h3>
 
           {params ? (
             <div className="space-y-3 text-sm">
@@ -125,7 +125,7 @@ export function IssuanceDetail() {
               ].map(({ label, value }) => (
                 <div key={label} className="flex justify-between gap-4">
                   <span style={{ color: "var(--color-app-muted)" }}>{label}</span>
-                  <span className="text-white font-medium text-right">{value}</span>
+                  <span className="font-medium text-right" style={{ color: "var(--color-app-text)" }}>{value}</span>
                 </div>
               ))}
 
@@ -133,7 +133,7 @@ export function IssuanceDetail() {
                 className="pt-3 mt-1 space-y-2"
                 style={{ borderTop: "1px solid var(--color-app-border)" }}
               >
-                <div className="text-xs font-medium text-white">Timeline</div>
+                <div className="text-xs font-medium" style={{ color: "var(--color-app-text)" }}>Timeline</div>
                 {[
                   { label: "Commit Ends", value: formatTimestamp(params.commitWindowEnd) },
                   { label: "Reveal Ends", value: formatTimestamp(params.revealWindowEnd) },
@@ -154,7 +154,7 @@ export function IssuanceDetail() {
                   className="pt-3 mt-1 space-y-1.5"
                   style={{ borderTop: "1px solid var(--color-app-border)" }}
                 >
-                  <div className="text-xs font-medium text-white">
+                  <div className="text-xs font-medium" style={{ color: "var(--color-app-text)" }}>
                     Attestors ({approvedAttestors.length})
                   </div>
                   {approvedAttestors.map((att: string, idx: number) => (

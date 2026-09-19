@@ -15,14 +15,14 @@ interface AppSubHeaderProps {
 
 /**
  * Aave-style sub-header bar: page identity on the left, key stats on the right.
- * Rendered by each page component, slotted into the AppLayout sub-header zone.
+ * Adapts to system theme (light and dark).
  */
 export function AppSubHeader({ icon, title, description, stats }: AppSubHeaderProps) {
   return (
     <div
       className="border-b px-6 py-5"
       style={{
-        background: "var(--color-app-bg)",
+        background: "var(--color-app-surface)",
         borderColor: "var(--color-app-border)",
       }}
     >
@@ -38,7 +38,9 @@ export function AppSubHeader({ icon, title, description, stats }: AppSubHeaderPr
             </div>
           )}
           <div>
-            <h1 className="text-lg font-semibold text-white leading-tight">{title}</h1>
+            <h1 className="text-lg font-semibold leading-tight" style={{ color: "var(--color-app-text)" }}>
+              {title}
+            </h1>
             {description && (
               <p className="text-xs mt-0.5" style={{ color: "var(--color-app-muted)" }}>
                 {description}
@@ -52,10 +54,10 @@ export function AppSubHeader({ icon, title, description, stats }: AppSubHeaderPr
           <div className="flex items-center gap-8">
             {stats.map((stat, i) => (
               <div key={i} className="text-right">
-                <div className="text-xs" style={{ color: "var(--color-app-muted)" }}>
+                <div className="text-xs font-medium" style={{ color: "var(--color-app-muted)" }}>
                   {stat.label}
                 </div>
-                <div className="text-base font-semibold text-white mt-0.5">
+                <div className="text-base font-semibold mt-0.5" style={{ color: "var(--color-app-text)" }}>
                   {stat.value}
                 </div>
               </div>
