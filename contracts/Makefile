@@ -2,7 +2,7 @@
 
 UI_DIR := ../iceburg-ui/src/contracts
 
-.PHONY: anvil build test deploy-local sync-abi
+.PHONY: anvil build test deploy-local sync-abi bootstrap-local
 
 anvil:
 	anvil
@@ -29,3 +29,10 @@ deploy-local:
 sync-abi:
 	mkdir -p $(UI_DIR)
 	node ../scripts/sync-abi.mjs
+
+# Deploys the singleton protocol contracts (payment token, attestor
+# registry, factory) against a running local anvil, in one command.
+bootstrap-local:
+	$(MAKE) deploy-local SCRIPT=DeployDemoPaymentToken.s.sol:DeployDemoPaymentTokenScript
+	$(MAKE) deploy-local SCRIPT=DeployAttestorRegistry.s.sol:DeployAttestorRegistryScript
+	$(MAKE) deploy-local SCRIPT=DeployIssuanceFactory.s.sol:DeployIssuanceFactoryScript

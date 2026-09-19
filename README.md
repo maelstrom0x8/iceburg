@@ -117,24 +117,24 @@ Early build for the Arbitrum Open House Singapore Online Buildathon
    ```
    make anvil
    ```
-2. **Deploy a contract + sync its ABI to the frontend** (in another terminal, `contracts/`):
+2. **Deploy the protocol's singleton contracts** (in another terminal, `contracts/`) — the demo payment token, the attestor registry (with the demo attestor pre-approved), and the issuance factory:
    ```
-   make deploy-local SCRIPT=<File.s.sol>:<ContractName>
+   make bootstrap-local
    ```
-   This runs the given deploy script against anvil and regenerates the contract's typed export in `iceburg-ui/src/contracts` — see "Adding a new contract" below.
+   Each offering itself (`Issuance` + its `SecurityToken`) is created later, live, by calling `IssuanceFactory.createIssuance` from the issuer console — there's no static address to deploy or sync for those two; the frontend reads the real addresses back from the transaction receipt.
 3. **Run the frontend** (in `iceburg-ui/`):
    ```
    npm run dev
    ```
    Connect a wallet (e.g. MetaMask) pointed at `http://127.0.0.1:8545`, chain id `31337`, and import one of anvil's printed dev private keys to get test ETH.
 
-After changing a contract: `forge build` (or just re-run `make deploy-local SCRIPT=...`) to pick up ABI changes in the frontend.
+After changing a contract: `forge build` (or just re-run `make deploy-local SCRIPT=...` / `make bootstrap-local`) to pick up ABI changes in the frontend.
 
 ### Adding a new contract
 
 1. Write it in `contracts/src/`, add a deploy script in `contracts/script/`.
-2. Add it to the `CONTRACTS` list in `scripts/sync-abi.mjs`.
-3. Run `make deploy-local SCRIPT=<File.s.sol>:<ContractName>` — it'll show up as a typed export from `iceburg-ui/src/contracts`.
+2. Add it to the `CONTRACTS` list in `scripts/sync-abi.mjs` — a contract with one static address gets `{ name, broadcastScript }`; a contract created dynamically at runtime (like `Issuance`/`SecurityToken`, deployed per-offering by the factory) gets `{ name, deployed: false }` instead, which skips the broadcast-address lookup and exports the ABI only.
+3. Run `make deploy-local SCRIPT=<File.s.sol>:<ContractName>` (for a `deployed: true` contract) — it'll show up as a typed export from `iceburg-ui/src/contracts`.
 
 ### Environment
 
