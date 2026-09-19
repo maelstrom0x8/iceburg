@@ -1,5 +1,5 @@
 import { NavLink, Link } from "react-router-dom";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { WalletButton } from "../ui/WalletButton";
 
 interface Tab {
   to: string;
@@ -31,30 +31,31 @@ export function AppTopBar() {
         borderColor: "var(--color-app-border)",
       }}
     >
-      <div className="mx-auto flex h-14 max-w-screen-xl items-center gap-8 px-6">
+      <div className="mx-auto flex h-[52px] max-w-screen-xl items-center gap-6 px-6">
         {/* Wordmark */}
         <Link
           to="/"
           className="flex items-center gap-2 shrink-0"
         >
           <IcebergMark />
-          <span className="text-sm font-semibold tracking-tight" style={{ color: "var(--color-app-text)" }}>
+          <span
+            className="text-sm font-bold tracking-tight"
+            style={{ color: "var(--color-app-text)" }}
+          >
             Iceburg
           </span>
         </Link>
 
-        {/* Tab nav */}
-        <nav className="flex flex-1 items-stretch h-14 gap-1" aria-label="App navigation">
+        {/* Tab nav — fills remaining space, left-aligned */}
+        <nav className="flex flex-1 items-stretch h-[52px] gap-0.5" aria-label="App navigation">
           {TABS.map((tab) => (
             <NavLink
               key={tab.to}
               to={tab.to}
               className={({ isActive }) =>
                 [
-                  "relative flex items-center px-3 text-sm transition-colors font-medium",
-                  isActive
-                    ? "font-semibold"
-                    : "hover:opacity-80",
+                  "relative flex items-center px-3.5 text-sm font-medium transition-colors whitespace-nowrap",
+                  isActive ? "" : "hover:opacity-90",
                 ].join(" ")
               }
               style={({ isActive }) => ({
@@ -66,7 +67,8 @@ export function AppTopBar() {
                   {tab.label}
                   {isActive && (
                     <span
-                      className="absolute inset-x-0 bottom-0 h-0.5 bg-accent"
+                      className="absolute inset-x-0 bottom-0 h-[2px] rounded-t-full"
+                      style={{ background: "var(--color-accent)" }}
                       aria-hidden="true"
                     />
                   )}
@@ -76,13 +78,9 @@ export function AppTopBar() {
           ))}
         </nav>
 
-        {/* Right-side actions */}
-        <div className="shrink-0 flex items-center gap-3">
-          <ConnectButton
-            accountStatus="avatar"
-            chainStatus="icon"
-            showBalance={false}
-          />
+        {/* Right-side wallet actions */}
+        <div className="shrink-0 flex items-center">
+          <WalletButton />
         </div>
       </div>
     </header>

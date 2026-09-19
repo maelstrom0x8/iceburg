@@ -15,7 +15,12 @@ interface AppSubHeaderProps {
 
 /**
  * Aave-style sub-header bar: page identity on the left, key stats on the right.
- * Adapts to system theme (light and dark).
+ *
+ * Layout reference:
+ *   ┌─────────────────────────────────────────────────────────────┐
+ *   │  [icon]  Title (bold, xl)            Label   Label   Label  │
+ *   │          Description (sm, muted)     Value   Value   Value  │
+ *   └─────────────────────────────────────────────────────────────┘
  */
 export function AppSubHeader({ icon, title, description, stats }: AppSubHeaderProps) {
   return (
@@ -26,23 +31,29 @@ export function AppSubHeader({ icon, title, description, stats }: AppSubHeaderPr
         borderColor: "var(--color-app-border)",
       }}
     >
-      <div className="mx-auto flex max-w-screen-xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-screen-xl flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         {/* Left: identity */}
         <div className="flex items-center gap-3">
           {icon && (
             <div
-              className="flex h-10 w-10 items-center justify-center rounded-full shrink-0"
+              className="flex h-9 w-9 items-center justify-center rounded-full shrink-0"
               style={{ background: "var(--color-app-surface-2)" }}
             >
               {icon}
             </div>
           )}
           <div>
-            <h1 className="text-lg font-semibold leading-tight" style={{ color: "var(--color-app-text)" }}>
+            <h1
+              className="text-xl font-bold leading-tight"
+              style={{ color: "var(--color-app-text)" }}
+            >
               {title}
             </h1>
             {description && (
-              <p className="text-xs mt-0.5" style={{ color: "var(--color-app-muted)" }}>
+              <p
+                className="text-sm mt-0.5"
+                style={{ color: "var(--color-app-muted)" }}
+              >
                 {description}
               </p>
             )}
@@ -51,13 +62,19 @@ export function AppSubHeader({ icon, title, description, stats }: AppSubHeaderPr
 
         {/* Right: stats */}
         {stats.length > 0 && (
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-10 sm:gap-12">
             {stats.map((stat, i) => (
-              <div key={i} className="text-right">
-                <div className="text-xs font-medium" style={{ color: "var(--color-app-muted)" }}>
+              <div key={i}>
+                <div
+                  className="text-xs font-medium uppercase tracking-wide"
+                  style={{ color: "var(--color-app-muted)" }}
+                >
                   {stat.label}
                 </div>
-                <div className="text-base font-semibold mt-0.5" style={{ color: "var(--color-app-text)" }}>
+                <div
+                  className="text-2xl font-bold mt-0.5 leading-none"
+                  style={{ color: "var(--color-app-text)" }}
+                >
                   {stat.value}
                 </div>
               </div>

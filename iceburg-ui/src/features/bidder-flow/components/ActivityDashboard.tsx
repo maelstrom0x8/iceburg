@@ -98,7 +98,7 @@ export function ActivityDashboard() {
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-10">
       <div style={{ borderBottom: "1px solid var(--color-app-border)" }} className="pb-4">
-        <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--color-app-text)" }}>My Activity</h1>
+        <h1 className="text-2xl  tracking-tight" style={{ color: "var(--color-app-text)" }}>My Activity</h1>
         <p className="text-xs mt-1 font-mono" style={{ color: "var(--color-app-muted)" }}>
           Wallet: {walletAddress}
         </p>
