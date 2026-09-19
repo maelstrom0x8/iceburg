@@ -3,9 +3,19 @@ import { useWriteContract, usePublicClient } from "wagmi";
 import { useState, useCallback } from "react";
 import { IssuanceAbi } from "../../../contracts";
 import { useIssuanceContext } from "../context/IssuanceContext";
+import { getRevertReason } from "../../../lib/revertReasons";
 import { formatDUSD } from "../../../lib/format";
 import { CountdownTimer } from "../../../components/ui/CountdownTimer";
-import { getRevertReason } from "../../../lib/revertReasons";
+
+const CARD = {
+  background: "var(--color-app-surface)",
+  border: "1px solid var(--color-app-border)",
+};
+
+const INSET = {
+  background: "var(--color-app-surface-2)",
+  border: "1px solid var(--color-app-border)",
+};
 
 export function ChallengePanel() {
   const { address, standingProposal, state, refetch } = useIssuanceContext();
@@ -41,39 +51,40 @@ export function ChallengePanel() {
     now >= standingProposal.challengeDeadline;
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-6 space-y-6">
+    <div className="rounded-xl p-6 space-y-6" style={CARD}>
       <div className="space-y-2">
-        <h3 className="text-xl font-semibold text-white">Challenge Window Open</h3>
-        <p className="text-sm text-slate-400">
-          A clearing proposal has been submitted. Any participant may challenge this standing proposal before the deadline if a superior valid clearing exists.
+        <h3 className="text-xl font-semibold" style={{ color: "var(--color-app-text)" }}>
+          Challenge Window Open
+        </h3>
+        <p className="text-sm" style={{ color: "var(--color-app-muted)" }}>
+          A clearing proposal has been submitted. Any participant may challenge this standing
+          proposal before the deadline if a superior valid clearing exists.
         </p>
       </div>
 
       {standingProposal && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 rounded-lg bg-black/20 p-4 border border-white/5 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 rounded-lg p-4 text-sm" style={INSET}>
           <div>
-            <div className="text-slate-400 text-xs">Clearing Price</div>
-            <div className="text-white font-medium mt-1">
+            <div className="text-xs mb-1" style={{ color: "var(--color-app-muted)" }}>Clearing Price</div>
+            <div className="font-medium" style={{ color: "var(--color-app-text)" }}>
               {formatDUSD(standingProposal.clearingPrice)} / token
             </div>
           </div>
           <div>
-            <div className="text-slate-400 text-xs">Proposer</div>
-            <div className="text-white font-mono text-xs truncate mt-1">
+            <div className="text-xs mb-1" style={{ color: "var(--color-app-muted)" }}>Proposer</div>
+            <div className="font-mono text-xs truncate" style={{ color: "var(--color-app-text)" }}>
               {standingProposal.proposer}
             </div>
           </div>
           <div>
-            <div className="text-slate-400 text-xs">Challenge Window Ends</div>
-            <div className="mt-1">
-              <CountdownTimer deadline={standingProposal.challengeDeadline} />
-            </div>
+            <div className="text-xs mb-1" style={{ color: "var(--color-app-muted)" }}>Challenge Window Ends</div>
+            <CountdownTimer deadline={standingProposal.challengeDeadline} />
           </div>
         </div>
       )}
 
       {errorMsg && (
-        <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
+        <div className="rounded-lg p-3 text-sm border border-red-500/30 bg-red-500/10 text-red-500">
           {errorMsg}
         </div>
       )}
@@ -83,15 +94,15 @@ export function ChallengePanel() {
           <button
             onClick={handleCloseChallengeWindow}
             disabled={closing}
-            className="px-4 py-2.5 rounded-lg text-sm font-medium bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/30 transition-colors disabled:opacity-50"
+            className="px-4 py-2.5 rounded-lg text-sm font-medium border border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 transition-colors disabled:opacity-50"
           >
-            {closing ? "Finalizing Challenge Window..." : "Close Challenge Window & Finalize"}
+            {closing ? "Finalizing…" : "Close Challenge Window & Finalize"}
           </button>
         )}
 
         <Link
           to={`/app/clearing?issuance=${address}`}
-          className="px-5 py-2.5 rounded-lg text-sm font-medium bg-accent text-black hover:bg-accent-hover transition-colors inline-flex items-center gap-2"
+          className="px-5 py-2.5 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors inline-flex items-center gap-2"
         >
           <span>Challenge Standing Proposal</span>
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

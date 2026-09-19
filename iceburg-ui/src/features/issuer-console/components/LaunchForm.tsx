@@ -52,7 +52,6 @@ export function LaunchForm() {
         return;
       }
 
-      // Validations
       if (!tokenName.trim() || !tokenSymbol.trim()) {
         setErrorMsg("Token name and symbol are required.");
         return;
@@ -107,7 +106,6 @@ export function LaunchForm() {
 
       setSubmitting(true);
       try {
-        // Approve factory if minBond > 0 and allowance is insufficient
         if (minBondWei > 0n && allowance !== undefined && allowance < minBondWei && DemoUSDAddress && IssuanceFactoryAddress && publicClient) {
           const appHash = await writeContractAsync({
             address: DemoUSDAddress,
@@ -160,27 +158,42 @@ export function LaunchForm() {
     ]
   );
 
+  const surfaceStyle = {
+    background: "var(--color-app-surface)",
+    border: "1px solid var(--color-app-border)",
+  };
+
+  const inputStyle = {
+    background: "var(--color-app-surface-2)",
+    border: "1px solid var(--color-app-border)",
+    color: "var(--color-app-text)",
+  };
+
+  const labelStyle = {
+    color: "var(--color-app-muted)",
+  };
+
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-8 p-6">
-      <div className="border-b border-white/10 pb-4">
-        <h2 className="text-2xl font-bold text-white tracking-tight">Create Sealed-Bid Offering</h2>
-        <p className="text-sm text-slate-400 mt-1">
+      <div style={{ borderBottom: "1px solid var(--color-app-border)" }} className="pb-4">
+        <h2 className="text-2xl font-bold tracking-tight" style={{ color: "var(--color-app-text)" }}>Create Sealed-Bid Offering</h2>
+        <p className="text-sm mt-1" style={{ color: "var(--color-app-muted)" }}>
           Deploy a primary security token issuance with sealed-bid commit-reveal auction mechanics.
         </p>
       </div>
 
       {errorMsg && (
-        <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-4 text-sm text-red-400">
+        <div className="rounded-lg p-4 text-sm" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171" }}>
           {errorMsg}
         </div>
       )}
 
       {/* Section 1: Security Token Details */}
-      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-white">1. Security Token Details</h3>
+      <div className="rounded-xl p-6 space-y-4" style={surfaceStyle}>
+        <h3 className="text-lg font-semibold" style={{ color: "var(--color-app-text)" }}>1. Security Token Details</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-medium mb-1" style={labelStyle}>
               Token Name
             </label>
             <input
@@ -188,12 +201,13 @@ export function LaunchForm() {
               placeholder="e.g. Acme Corp Series A"
               value={tokenName}
               onChange={(e) => setTokenName(e.target.value)}
-              className="w-full rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-accent"
+              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              style={inputStyle}
               required
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-medium mb-1" style={labelStyle}>
               Token Symbol
             </label>
             <input
@@ -201,7 +215,8 @@ export function LaunchForm() {
               placeholder="e.g. ACME"
               value={tokenSymbol}
               onChange={(e) => setTokenSymbol(e.target.value)}
-              className="w-full rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-accent uppercase"
+              className="w-full rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-accent"
+              style={inputStyle}
               required
             />
           </div>
@@ -209,23 +224,24 @@ export function LaunchForm() {
       </div>
 
       {/* Section 2: Supply & Pricing */}
-      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-white">2. Supply & Pricing</h3>
+      <div className="rounded-xl p-6 space-y-4" style={surfaceStyle}>
+        <h3 className="text-lg font-semibold" style={{ color: "var(--color-app-text)" }}>2. Supply & Pricing</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-medium mb-1" style={labelStyle}>
               Total Supply (tokens)
             </label>
             <input
               type="number"
               value={supplyInput}
               onChange={(e) => setSupplyInput(e.target.value)}
-              className="w-full rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-accent"
+              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              style={inputStyle}
               required
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-medium mb-1" style={labelStyle}>
               Reserve Price (DUSD / token)
             </label>
             <input
@@ -233,12 +249,13 @@ export function LaunchForm() {
               step="0.01"
               value={reservePriceInput}
               onChange={(e) => setReservePriceInput(e.target.value)}
-              className="w-full rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-accent"
+              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              style={inputStyle}
               required
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-medium mb-1" style={labelStyle}>
               Per-Bidder Allocation Cap (bps)
             </label>
             <input
@@ -246,13 +263,14 @@ export function LaunchForm() {
               placeholder="1000 = 10%"
               value={capBpsInput}
               onChange={(e) => setCapBpsInput(e.target.value)}
-              className="w-full rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-accent"
+              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              style={inputStyle}
               required
             />
-            <span className="text-[11px] text-slate-500">100 bps = 1% cap per address</span>
+            <span className="text-[11px] block mt-0.5" style={{ color: "var(--color-app-muted)" }}>100 bps = 1% cap per address</span>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-medium mb-1" style={labelStyle}>
               Minimum Required Bond (DUSD)
             </label>
             <input
@@ -260,7 +278,8 @@ export function LaunchForm() {
               step="0.1"
               value={minBondInput}
               onChange={(e) => setMinBondInput(e.target.value)}
-              className="w-full rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-accent"
+              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              style={inputStyle}
               required
             />
           </div>
@@ -268,23 +287,24 @@ export function LaunchForm() {
       </div>
 
       {/* Section 3: Governance & Attestation */}
-      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-white">3. Governance & Attestation</h3>
+      <div className="rounded-xl p-6 space-y-4" style={surfaceStyle}>
+        <h3 className="text-lg font-semibold" style={{ color: "var(--color-app-text)" }}>3. Governance & Attestation</h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-medium mb-1" style={labelStyle}>
               Minimum Distinct Holders Required
             </label>
             <input
               type="number"
               value={minHoldersInput}
               onChange={(e) => setMinHoldersInput(e.target.value)}
-              className="w-full rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-accent"
+              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              style={inputStyle}
               required
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-medium mb-1" style={labelStyle}>
               Approved Attestor Addresses (one per line or comma-separated)
             </label>
             <textarea
@@ -292,7 +312,8 @@ export function LaunchForm() {
               value={attestorsInput}
               onChange={(e) => setAttestorsInput(e.target.value)}
               placeholder="0x..."
-              className="w-full rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-accent"
+              className="w-full rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-accent"
+              style={inputStyle}
               required
             />
           </div>
@@ -300,42 +321,45 @@ export function LaunchForm() {
       </div>
 
       {/* Section 4: Auction Timeline */}
-      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-white">4. Auction Timeline</h3>
+      <div className="rounded-xl p-6 space-y-4" style={surfaceStyle}>
+        <h3 className="text-lg font-semibold" style={{ color: "var(--color-app-text)" }}>4. Auction Timeline</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-medium mb-1" style={labelStyle}>
               Commit Window (minutes)
             </label>
             <input
               type="number"
               value={commitMinutes}
               onChange={(e) => setCommitMinutes(e.target.value)}
-              className="w-full rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-accent"
+              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              style={inputStyle}
               required
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-medium mb-1" style={labelStyle}>
               Reveal Window (minutes)
             </label>
             <input
               type="number"
               value={revealMinutes}
               onChange={(e) => setRevealMinutes(e.target.value)}
-              className="w-full rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-accent"
+              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              style={inputStyle}
               required
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-medium mb-1" style={labelStyle}>
               Challenge Window (minutes)
             </label>
             <input
               type="number"
               value={challengeMinutes}
               onChange={(e) => setChallengeMinutes(e.target.value)}
-              className="w-full rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-accent"
+              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              style={inputStyle}
               required
             />
           </div>
@@ -346,7 +370,8 @@ export function LaunchForm() {
         <button
           type="submit"
           disabled={submitting || launchStatus === "pending"}
-          className="px-6 py-3 rounded-lg bg-accent text-black font-semibold text-sm hover:bg-accent-hover transition-colors disabled:opacity-50"
+          className="px-6 py-3 rounded-lg text-black font-semibold text-sm transition-colors disabled:opacity-50"
+          style={{ background: "var(--color-accent)" }}
         >
           {submitting || launchStatus === "pending"
             ? "Deploying Offering..."

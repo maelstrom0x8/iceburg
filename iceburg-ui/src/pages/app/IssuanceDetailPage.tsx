@@ -81,7 +81,7 @@ export function IssuanceDetailPage() {
   if (!address || !isAddress(address)) {
     return (
       <div className="mx-auto max-w-screen-xl px-6 py-16 text-center">
-        <h2 className="text-xl font-semibold text-white mb-2">Invalid Offering Address</h2>
+        <h2 className="text-xl font-semibold mb-2" style={{ color: "var(--color-app-text)" }}>Invalid Offering Address</h2>
         <p className="text-sm" style={{ color: "var(--color-app-muted)" }}>
           The contract address in the URL is not a valid Ethereum address.
         </p>

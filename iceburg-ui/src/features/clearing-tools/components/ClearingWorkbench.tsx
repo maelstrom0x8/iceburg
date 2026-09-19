@@ -32,7 +32,6 @@ export function ClearingWorkbench() {
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
 
-  // Check DemoUSD allowance for solver bond
   const { data: bondAllowance } = useReadContract({
     address: DemoUSDAddress,
     abi: DemoUSDAbi,
@@ -82,7 +81,6 @@ export function ClearingWorkbench() {
     }
   }, [bids, issuanceState.params]);
 
-  // Construct allocations array [b0, b1, ..., bn-1] for contract call
   const allocationsArray = useMemo(() => {
     if (!solverResult || solverResult.kind !== "cleared") return [];
     return bids.map((b) => solverResult.allocations.get(b.bidder) ?? 0n);
@@ -96,7 +94,6 @@ export function ClearingWorkbench() {
     try {
       const minBond = issuanceState.params.minBond;
 
-      // Approve bond payment token if needed
       if (minBond > 0n && DemoUSDAddress && (!bondAllowance || bondAllowance < minBond)) {
         const appHash = await writeContractAsync({
           address: DemoUSDAddress,
@@ -185,18 +182,31 @@ export function ClearingWorkbench() {
     allocationsArray,
   ]);
 
+  const surfaceStyle = {
+    background: "var(--color-app-surface)",
+    border: "1px solid var(--color-app-border)",
+  };
+
+  const inputStyle = {
+    background: "var(--color-app-surface-2)",
+    border: "1px solid var(--color-app-border)",
+    color: "var(--color-app-text)",
+  };
+
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-8">
-      <div className="border-b border-white/10 pb-4">
-        <h1 className="text-2xl font-bold text-white tracking-tight">Clearing Solver Workbench</h1>
-        <p className="text-sm text-slate-400 mt-1">
+      <div style={{ borderBottom: "1px solid var(--color-app-border)" }} className="pb-4">
+        <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--color-app-text)" }}>
+          Clearing Solver Workbench
+        </h1>
+        <p className="text-sm mt-1" style={{ color: "var(--color-app-muted)" }}>
           Permissionless auction solver interface. Run the uniform-price clearing algorithm on revealed bids to propose or challenge a clearing outcome.
         </p>
       </div>
 
       {/* Target Issuance Selector */}
-      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-6 space-y-4">
-        <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+      <div className="rounded-xl p-6 space-y-4" style={surfaceStyle}>
+        <label className="block text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-app-muted)" }}>
           Target Offering Contract
         </label>
         <div className="flex flex-col sm:flex-row gap-3">
@@ -205,13 +215,15 @@ export function ClearingWorkbench() {
             placeholder="Paste offering contract address (0x...)"
             value={selectedAddress}
             onChange={(e) => handleSelectIssuance(e.target.value)}
-            className="flex-1 rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm font-mono text-white focus:outline-none focus:border-accent"
+            className="flex-1 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-accent"
+            style={inputStyle}
           />
           {allIssuances.length > 0 && (
             <select
               onChange={(e) => handleSelectIssuance(e.target.value)}
               value={selectedAddress}
-              className="rounded-lg bg-black/40 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-accent"
+              className="rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+              style={inputStyle}
             >
               <option value="">Select from active list...</option>
               {allIssuances.map((item) => (
@@ -225,7 +237,7 @@ export function ClearingWorkbench() {
 
         {validAddress && issuanceState.state !== undefined && (
           <div className="flex items-center gap-3 pt-2">
-            <span className="text-xs text-slate-400">Current On-Chain State:</span>
+            <span className="text-xs" style={{ color: "var(--color-app-muted)" }}>Current On-Chain State:</span>
             <StateBadge state={issuanceState.state} />
           </div>
         )}
@@ -234,54 +246,55 @@ export function ClearingWorkbench() {
       {validAddress && (
         <div className="space-y-8">
           {/* Section: Bids Table */}
-          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-6 space-y-4">
+          <div className="rounded-xl p-6 space-y-4" style={surfaceStyle}>
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-lg font-semibold" style={{ color: "var(--color-app-text)" }}>
                 Revealed Bids ({bids.length})
               </h3>
               <button
                 onClick={handleRunSolver}
                 disabled={loadingBids || bids.length === 0}
-                className="px-4 py-2 rounded-lg bg-accent text-black font-semibold text-sm hover:bg-accent-hover transition-colors disabled:opacity-50"
+                className="px-4 py-2 rounded-lg text-black font-semibold text-sm transition-colors disabled:opacity-50"
+                style={{ background: "var(--color-accent)" }}
               >
                 Run Off-Chain Solver
               </button>
             </div>
 
             {loadingBids ? (
-              <div className="h-32 bg-white/5 rounded-lg animate-pulse" />
+              <div className="h-32 rounded-lg animate-pulse" style={{ background: "var(--color-app-surface-2)" }} />
             ) : bids.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-slate-500 text-sm">
+              <div className="rounded-lg border border-dashed p-6 text-center text-sm" style={{ borderColor: "var(--color-app-border)", color: "var(--color-app-muted)" }}>
                 No revealed bids found for this offering.
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-slate-300">
-                  <thead className="bg-white/5 text-xs text-slate-400 uppercase font-medium">
-                    <tr>
-                      <th className="px-4 py-3 rounded-l-lg">#</th>
-                      <th className="px-4 py-3">Bidder</th>
-                      <th className="px-4 py-3 text-right">Quantity</th>
-                      <th className="px-4 py-3 text-right">Price</th>
-                      <th className="px-4 py-3 text-center">Eligible</th>
-                      <th className="px-4 py-3 text-right rounded-r-lg">Escrow Locked</th>
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr style={{ background: "var(--color-app-surface-2)", borderBottom: "1px solid var(--color-app-border)" }}>
+                      <th className="px-4 py-3 rounded-l-lg text-xs uppercase font-medium" style={{ color: "var(--color-app-muted)" }}>#</th>
+                      <th className="px-4 py-3 text-xs uppercase font-medium" style={{ color: "var(--color-app-muted)" }}>Bidder</th>
+                      <th className="px-4 py-3 text-right text-xs uppercase font-medium" style={{ color: "var(--color-app-muted)" }}>Quantity</th>
+                      <th className="px-4 py-3 text-right text-xs uppercase font-medium" style={{ color: "var(--color-app-muted)" }}>Price</th>
+                      <th className="px-4 py-3 text-center text-xs uppercase font-medium" style={{ color: "var(--color-app-muted)" }}>Eligible</th>
+                      <th className="px-4 py-3 text-right rounded-r-lg text-xs uppercase font-medium" style={{ color: "var(--color-app-muted)" }}>Escrow Locked</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5 text-xs font-mono">
+                  <tbody className="text-xs font-mono">
                     {bids.map((b) => (
-                      <tr key={b.index} className="hover:bg-white/[0.02]">
-                        <td className="px-4 py-3 text-slate-500">{b.index}</td>
-                        <td className="px-4 py-3 text-white">{b.bidder}</td>
-                        <td className="px-4 py-3 text-right font-sans">{formatUnits(b.qty, 18)}</td>
-                        <td className="px-4 py-3 text-right font-sans">{formatDUSD(b.price)}</td>
-                        <td className="px-4 py-3 text-center">
+                      <tr key={b.index} style={{ borderBottom: "1px solid var(--color-app-border)" }} className="hover:bg-[var(--color-app-surface-2)]">
+                        <td className="px-4 py-3" style={{ color: "var(--color-app-muted)" }}>{b.index}</td>
+                        <td className="px-4 py-3 font-mono" style={{ color: "var(--color-app-text)" }}>{b.bidder}</td>
+                        <td className="px-4 py-3 text-right font-sans" style={{ color: "var(--color-app-text)" }}>{formatUnits(b.qty, 18)}</td>
+                        <td className="px-4 py-3 text-right font-sans" style={{ color: "var(--color-app-text)" }}>{formatDUSD(b.price)}</td>
+                        <td className="px-4 py-3 text-center font-sans">
                           {b.eligible ? (
-                            <span className="text-emerald-400 font-sans text-xs">Yes</span>
+                            <span className="text-emerald-500 font-semibold text-xs">Yes</span>
                           ) : (
-                            <span className="text-red-400 font-sans text-xs">No</span>
+                            <span className="text-red-500 font-semibold text-xs">No</span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-right font-sans">{formatDUSD(b.escrow)}</td>
+                        <td className="px-4 py-3 text-right font-sans" style={{ color: "var(--color-app-text)" }}>{formatDUSD(b.escrow)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -292,23 +305,23 @@ export function ClearingWorkbench() {
 
           {/* Section: Solver Output & Actions */}
           {solvingError && (
-            <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-4 text-sm text-red-400">
+            <div className="rounded-lg p-4 text-sm" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171" }}>
               Solver error: {solvingError}
             </div>
           )}
 
           {txError && (
-            <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-4 text-sm text-red-400">
+            <div className="rounded-lg p-4 text-sm" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171" }}>
               Transaction error: {txError}
             </div>
           )}
 
           {solverResult && (
-            <div className="rounded-xl border border-accent/20 bg-accent/[0.02] p-6 space-y-6">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <h3 className="text-lg font-semibold text-white">Solver Outcome</h3>
+            <div className="rounded-xl p-6 space-y-6" style={surfaceStyle}>
+              <div className="flex items-center justify-between pb-4" style={{ borderBottom: "1px solid var(--color-app-border)" }}>
+                <h3 className="text-lg font-semibold" style={{ color: "var(--color-app-text)" }}>Solver Outcome</h3>
                 <span className={`px-2.5 py-1 rounded text-xs font-semibold ${
-                  solverResult.kind === "cleared" ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300"
+                  solverResult.kind === "cleared" ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-300" : "bg-amber-500/20 text-amber-600 dark:text-amber-300"
                 }`}>
                   {solverResult.kind.toUpperCase()}
                 </span>
@@ -316,7 +329,7 @@ export function ClearingWorkbench() {
 
               {solverResult.kind === "unresolved" ? (
                 <div className="space-y-4">
-                  <p className="text-sm text-slate-300">
+                  <p className="text-sm" style={{ color: "var(--color-app-text)" }}>
                     The auction could not clear (e.g. reserve price or minimum distinct holder count not satisfied). You may submit an Unresolved Clearing proposal on-chain.
                   </p>
                   <button
@@ -329,22 +342,22 @@ export function ClearingWorkbench() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 rounded-lg bg-black/30 p-4 border border-white/10 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 rounded-lg p-4 text-sm" style={{ background: "var(--color-app-surface-2)", border: "1px solid var(--color-app-border)" }}>
                     <div>
-                      <div className="text-slate-400 text-xs">Clearing Price</div>
-                      <div className="text-accent font-bold text-lg mt-1">
+                      <div className="text-xs" style={{ color: "var(--color-app-muted)" }}>Clearing Price</div>
+                      <div className="font-bold text-lg mt-1" style={{ color: "var(--color-accent)" }}>
                         {formatDUSD(solverResult.price)} / token
                       </div>
                     </div>
                     <div>
-                      <div className="text-slate-400 text-xs">Winning Bidders</div>
-                      <div className="text-white font-semibold text-lg mt-1">
+                      <div className="text-xs" style={{ color: "var(--color-app-muted)" }}>Winning Bidders</div>
+                      <div className="font-semibold text-lg mt-1" style={{ color: "var(--color-app-text)" }}>
                         {solverResult.allocations.size}
                       </div>
                     </div>
                     <div>
-                      <div className="text-slate-400 text-xs">Total Allocated</div>
-                      <div className="text-white font-semibold text-lg mt-1">
+                      <div className="text-xs" style={{ color: "var(--color-app-muted)" }}>Total Allocated</div>
+                      <div className="font-semibold text-lg mt-1" style={{ color: "var(--color-app-text)" }}>
                         {formatUnits(
                           Array.from(solverResult.allocations.values()).reduce((a, b) => a + b, 0n),
                           18
@@ -356,22 +369,22 @@ export function ClearingWorkbench() {
 
                   {/* Allocations Table */}
                   <div className="space-y-2">
-                    <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-app-muted)" }}>
                       Computed Allocations
                     </h4>
-                    <div className="overflow-x-auto rounded-lg border border-white/5 bg-black/20">
-                      <table className="w-full text-left text-xs font-mono text-slate-300">
-                        <thead className="bg-white/5 text-slate-400">
-                          <tr>
-                            <th className="px-4 py-2">Bidder Address</th>
-                            <th className="px-4 py-2 text-right">Allocated Tokens</th>
+                    <div className="overflow-x-auto rounded-lg border" style={{ borderColor: "var(--color-app-border)", background: "var(--color-app-surface-2)" }}>
+                      <table className="w-full text-left text-xs font-mono">
+                        <thead>
+                          <tr style={{ borderBottom: "1px solid var(--color-app-border)" }}>
+                            <th className="px-4 py-2" style={{ color: "var(--color-app-muted)" }}>Bidder Address</th>
+                            <th className="px-4 py-2 text-right" style={{ color: "var(--color-app-muted)" }}>Allocated Tokens</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
+                        <tbody>
                           {Array.from(solverResult.allocations.entries()).map(([addr, qty]) => (
-                            <tr key={addr}>
-                              <td className="px-4 py-2 text-white">{addr}</td>
-                              <td className="px-4 py-2 text-right font-sans font-medium text-emerald-400">
+                            <tr key={addr} style={{ borderBottom: "1px solid var(--color-app-border)" }}>
+                              <td className="px-4 py-2" style={{ color: "var(--color-app-text)" }}>{addr}</td>
+                              <td className="px-4 py-2 text-right font-sans font-medium text-emerald-500">
                                 {formatUnits(qty, 18)}
                               </td>
                             </tr>
@@ -387,7 +400,8 @@ export function ClearingWorkbench() {
                       <button
                         onClick={handleProposeClearing}
                         disabled={submitting}
-                        className="px-6 py-2.5 rounded-lg bg-accent text-black font-semibold text-sm hover:bg-accent-hover transition-colors disabled:opacity-50"
+                        className="px-6 py-2.5 rounded-lg text-black font-semibold text-sm transition-colors disabled:opacity-50"
+                        style={{ background: "var(--color-accent)" }}
                       >
                         {submitting ? "Submitting..." : "Submit Propose Clearing Tx"}
                       </button>

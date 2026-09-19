@@ -9,12 +9,14 @@
 }
 
 @font-face {
-  font-family: "Source Sans 3";
+  font-family: "Inter";
   src: url("./assets/fonts/Inter-Italic-VariableFont_opsz_wght.ttf") format("truetype-variations");
-  font-weight: 200 900;
+  font-weight: 100 900;
   font-style: italic;
   font-display: swap;
 }
+
+/* ── Design tokens ─────────────────────────────────────────────────────────── */
 
 :root {
   color-scheme: light dark;
@@ -22,34 +24,52 @@
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
-  --color-accent: #4db6ac;
+  /* Brand */
+  --color-accent:       #4db6ac;
   --color-accent-light: #80cbc4;
   --color-accent-hover: #3da49a;
 
+  /*
+   * App shell surfaces — matches the Aave reference:
+   *   light: #f8f9fa page bg, #ffffff cards/nav/sub-header
+   *   dark:  #0d0e11 page bg, #14161d cards/nav/sub-header
+   */
   --color-app-bg:        light-dark(#f8f9fa, #0d0e11);
-  --color-app-surface:   light-dark(#ffffff, #14161d);
-  --color-app-surface-2: light-dark(#f1f3f5, #1c1f2a);
-  --color-app-border:    light-dark(#e9ecef, rgba(255, 255, 255, 0.08));
-  --color-app-border-2:  light-dark(#dee2e6, rgba(255, 255, 255, 0.15));
-  --color-app-text:      light-dark(#111827, #f8fafc);
-  --color-app-muted:     light-dark(#6b7280, rgba(255, 255, 255, 0.45));
-  --color-app-muted-2:   light-dark(#374151, rgba(255, 255, 255, 0.65));
+  --color-app-surface:   light-dark(#ffffff,  #14161d);
+  --color-app-surface-2: light-dark(#f4f6f8,  #1c1f2a);
+  --color-app-border:    light-dark(rgba(0,0,0,0.08), rgba(255,255,255,0.07));
+  --color-app-border-2:  light-dark(rgba(0,0,0,0.14), rgba(255,255,255,0.13));
+
+  /* Text hierarchy */
+  --color-app-text:    light-dark(#1a1f36, #f0f2f5);
+  --color-app-muted:   light-dark(#6b7280, rgba(255,255,255,0.42));
+  --color-app-muted-2: light-dark(#374151, rgba(255,255,255,0.62));
+
+  /* Semantic surface overlays (for hover rows, empty states etc.) */
+  --color-app-overlay:       light-dark(rgba(0,0,0,0.04), rgba(255,255,255,0.04));
+  --color-app-overlay-hover: light-dark(rgba(0,0,0,0.06), rgba(255,255,255,0.06));
+  --color-app-inset:         light-dark(rgba(0,0,0,0.05), rgba(0,0,0,0.25));
 }
 
+/* Expose tokens to Tailwind's theme engine */
 @theme {
-  --font-sans: var(--font-sans);
-  --color-accent: #4db6ac;
-  --color-accent-light: #80cbc4;
-  --color-accent-hover: #3da49a;
-  --color-app-bg: var(--color-app-bg);
-  --color-app-surface: var(--color-app-surface);
-  --color-app-surface-2: var(--color-app-surface-2);
-  --color-app-border: var(--color-app-border);
-  --color-app-border-2: var(--color-app-border-2);
-  --color-app-text: var(--color-app-text);
-  --color-app-muted: var(--color-app-muted);
-  --color-app-muted-2: var(--color-app-muted-2);
+  --font-sans:            var(--font-sans);
+  --color-accent:         #4db6ac;
+  --color-accent-light:   #80cbc4;
+  --color-accent-hover:   #3da49a;
+  --color-app-bg:         var(--color-app-bg);
+  --color-app-surface:    var(--color-app-surface);
+  --color-app-surface-2:  var(--color-app-surface-2);
+  --color-app-border:     var(--color-app-border);
+  --color-app-border-2:   var(--color-app-border-2);
+  --color-app-text:       var(--color-app-text);
+  --color-app-muted:      var(--color-app-muted);
+  --color-app-muted-2:    var(--color-app-muted-2);
+  --color-app-overlay:    var(--color-app-overlay);
+  --color-app-inset:      var(--color-app-inset);
 }
+
+/* ── Global reset ──────────────────────────────────────────────────────────── */
 
 body {
   margin: 0;

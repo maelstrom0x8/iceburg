@@ -11,6 +11,11 @@ const CARD = {
   border: "1px solid var(--color-app-border)",
 };
 
+const INSET = {
+  background: "var(--color-app-surface-2)",
+  border: "1px solid var(--color-app-border)",
+};
+
 export function ClearingPendingPanel() {
   const { address, params, state, refetch } = useIssuanceContext();
   const { writeContractAsync } = useWriteContract();
@@ -45,37 +50,40 @@ export function ClearingPendingPanel() {
   return (
     <div className="rounded-xl p-6 space-y-5" style={CARD}>
       <div>
-        <h3 className="text-base font-semibold text-white">Clearing Pending</h3>
+        <h3 className="text-base font-semibold" style={{ color: "var(--color-app-text)" }}>
+          Clearing Pending
+        </h3>
         <p className="text-sm mt-1" style={{ color: "var(--color-app-muted)" }}>
-          The reveal window has closed. A solver must run the off-chain clearing algorithm and submit a proposal on-chain to proceed.
+          The reveal window has closed. A solver must run the off-chain clearing algorithm and submit
+          a proposal on-chain to proceed.
         </p>
       </div>
 
       {params && (
-        <div
-          className="grid grid-cols-3 gap-4 rounded-lg p-4 text-sm"
-          style={{ background: "var(--color-app-surface-2)" }}
-        >
+        <div className="grid grid-cols-3 gap-4 rounded-lg p-4 text-sm" style={INSET}>
           <div>
             <div className="text-xs mb-1" style={{ color: "var(--color-app-muted)" }}>Total Supply</div>
-            <div className="font-medium text-white">{formatUnits(params.supply, 18)} tokens</div>
+            <div className="font-medium" style={{ color: "var(--color-app-text)" }}>
+              {formatUnits(params.supply, 18)} tokens
+            </div>
           </div>
           <div>
             <div className="text-xs mb-1" style={{ color: "var(--color-app-muted)" }}>Reserve Price</div>
-            <div className="font-medium text-white">{formatDUSD(params.reservePrice)} / token</div>
+            <div className="font-medium" style={{ color: "var(--color-app-text)" }}>
+              {formatDUSD(params.reservePrice)} / token
+            </div>
           </div>
           <div>
             <div className="text-xs mb-1" style={{ color: "var(--color-app-muted)" }}>Min Holders</div>
-            <div className="font-medium text-white">{params.minHolders.toString()}</div>
+            <div className="font-medium" style={{ color: "var(--color-app-text)" }}>
+              {params.minHolders.toString()}
+            </div>
           </div>
         </div>
       )}
 
       {errorMsg && (
-        <div
-          className="rounded-lg p-3 text-sm"
-          style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171" }}
-        >
+        <div className="rounded-lg p-3 text-sm border border-red-500/30 bg-red-500/10 text-red-500">
           {errorMsg}
         </div>
       )}
@@ -85,12 +93,7 @@ export function ClearingPendingPanel() {
           <button
             onClick={handleCloseRevealWindow}
             disabled={closing}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-            style={{
-              background: "rgba(245,158,11,0.12)",
-              border: "1px solid rgba(245,158,11,0.25)",
-              color: "#fcd34d",
-            }}
+            className="px-4 py-2 rounded-lg text-sm font-medium border border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 transition-colors disabled:opacity-50"
           >
             {closing ? "Closing…" : "Close Reveal Window"}
           </button>
@@ -98,8 +101,7 @@ export function ClearingPendingPanel() {
 
         <Link
           to={`/app/clearing?issuance=${address}`}
-          className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-black transition-colors"
-          style={{ background: "var(--color-accent)" }}
+          className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-colors bg-accent hover:bg-accent-hover"
         >
           Open Clearing Workbench
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

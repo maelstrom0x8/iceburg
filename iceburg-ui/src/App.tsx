@@ -57,7 +57,6 @@ function App() {
         />
       </Route>
 
-      {/* ── App shell — entirely independent from marketing layout ── */}
       <Route path="/app" element={<AppLayout />}>
         {/* Default to issuances tab */}
         <Route index element={<Navigate to="/app/issuances" replace />} />
