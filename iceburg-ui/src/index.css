@@ -19,11 +19,15 @@
 @theme {
   --font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
 
+  /* Brand accent range — every accent color in the UI must fall between
+     these two stops. All other color comes from white/black shades. */
+  --color-accent: #4db6ac;
+  --color-accent-light: #80cbc4;
 }
 
 :root {
   color-scheme: light dark;
-  font-size: 20px;
+  font-size: 18px;
 }
 
 body {
