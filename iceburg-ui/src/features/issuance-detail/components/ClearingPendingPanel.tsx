@@ -6,6 +6,11 @@ import { useIssuanceContext } from "../context/IssuanceContext";
 import { formatDUSD, formatUnits } from "../../../lib/format";
 import { getRevertReason } from "../../../lib/revertReasons";
 
+const CARD = {
+  background: "var(--color-app-surface)",
+  border: "1px solid var(--color-app-border)",
+};
+
 export function ClearingPendingPanel() {
   const { address, params, state, refetch } = useIssuanceContext();
   const { writeContractAsync } = useWriteContract();
@@ -38,59 +43,65 @@ export function ClearingPendingPanel() {
     state === 1 && params?.revealWindowEnd && now >= params.revealWindowEnd;
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-6 space-y-6">
-      <div className="space-y-2">
-        <h3 className="text-xl font-semibold text-white">Clearing Pending</h3>
-        <p className="text-sm text-slate-400">
-          The reveal window has closed. The offering is currently awaiting a solver to run the clearing algorithm off-chain and submit a proposal.
+    <div className="rounded-xl p-6 space-y-5" style={CARD}>
+      <div>
+        <h3 className="text-base font-semibold text-white">Clearing Pending</h3>
+        <p className="text-sm mt-1" style={{ color: "var(--color-app-muted)" }}>
+          The reveal window has closed. A solver must run the off-chain clearing algorithm and submit a proposal on-chain to proceed.
         </p>
       </div>
 
       {params && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 rounded-lg bg-black/20 p-4 border border-white/5 text-sm">
+        <div
+          className="grid grid-cols-3 gap-4 rounded-lg p-4 text-sm"
+          style={{ background: "var(--color-app-surface-2)" }}
+        >
           <div>
-            <div className="text-slate-400 text-xs">Total Supply</div>
-            <div className="text-white font-medium mt-1">
-              {formatUnits(params.supply, 18)} tokens
-            </div>
+            <div className="text-xs mb-1" style={{ color: "var(--color-app-muted)" }}>Total Supply</div>
+            <div className="font-medium text-white">{formatUnits(params.supply, 18)} tokens</div>
           </div>
           <div>
-            <div className="text-slate-400 text-xs">Reserve Price</div>
-            <div className="text-white font-medium mt-1">
-              {formatDUSD(params.reservePrice)} / token
-            </div>
+            <div className="text-xs mb-1" style={{ color: "var(--color-app-muted)" }}>Reserve Price</div>
+            <div className="font-medium text-white">{formatDUSD(params.reservePrice)} / token</div>
           </div>
           <div>
-            <div className="text-slate-400 text-xs">Min Holders</div>
-            <div className="text-white font-medium mt-1">
-              {params.minHolders.toString()}
-            </div>
+            <div className="text-xs mb-1" style={{ color: "var(--color-app-muted)" }}>Min Holders</div>
+            <div className="font-medium text-white">{params.minHolders.toString()}</div>
           </div>
         </div>
       )}
 
       {errorMsg && (
-        <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
+        <div
+          className="rounded-lg p-3 text-sm"
+          style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171" }}
+        >
           {errorMsg}
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-3 pt-2">
+      <div className="flex items-center gap-3 pt-1">
         {canCloseReveal && (
           <button
             onClick={handleCloseRevealWindow}
             disabled={closing}
-            className="px-4 py-2.5 rounded-lg text-sm font-medium bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/30 transition-colors disabled:opacity-50"
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            style={{
+              background: "rgba(245,158,11,0.12)",
+              border: "1px solid rgba(245,158,11,0.25)",
+              color: "#fcd34d",
+            }}
           >
-            {closing ? "Closing Reveal Window..." : "Close Reveal Window"}
+            {closing ? "Closing…" : "Close Reveal Window"}
           </button>
         )}
 
         <Link
           to={`/app/clearing?issuance=${address}`}
-          className="px-5 py-2.5 rounded-lg text-sm font-medium bg-accent text-black hover:bg-accent-hover transition-colors inline-flex items-center gap-2"
+          className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-black transition-colors"
+          style={{ background: "var(--color-accent)" }}
         >
-          <span>Open Clearing Workbench</span>
+          Open Clearing Workbench
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
           </svg>

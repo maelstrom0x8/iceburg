@@ -1,16 +1,13 @@
 import { NavLink, Link } from "react-router-dom";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
-const FOCUS_RING =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent";
-
 interface Tab {
   to: string;
   label: string;
 }
 
 const TABS: Tab[] = [
-  { to: "/app/issuances", label: "Issuances" },
+  { to: "/app/issuances", label: "Offerings" },
   { to: "/app/activity", label: "My Activity" },
   { to: "/app/issue", label: "Issue" },
   { to: "/app/clearing", label: "Clearing" },
@@ -27,35 +24,37 @@ function IcebergMark() {
 
 export function AppTopBar() {
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--color-app-border)] bg-[var(--color-app-bg)]/80 backdrop-blur shadow-md shadow-black/40">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 sm:px-6">
+    <header
+      className="sticky top-0 z-50 border-b"
+      style={{
+        background: "var(--color-app-bg)",
+        borderColor: "var(--color-app-border)",
+      }}
+    >
+      <div className="mx-auto flex h-14 max-w-screen-xl items-center gap-8 px-6">
         {/* Wordmark */}
         <Link
           to="/"
-          className={`flex items-center gap-2 shrink-0 rounded-md ${FOCUS_RING}`}
+          className="flex items-center gap-2 shrink-0"
         >
           <IcebergMark />
-          <span className="text-base font-semibold tracking-tight text-white">
+          <span className="text-sm font-semibold tracking-tight text-white">
             Iceburg
           </span>
         </Link>
 
-        {/* Tab nav — horizontally scrollable on narrow viewports */}
-        <nav
-          className="flex flex-1 items-center gap-0.5 overflow-x-auto scrollbar-none"
-          aria-label="App navigation"
-        >
+        {/* Tab nav */}
+        <nav className="flex flex-1 items-stretch h-14 gap-1" aria-label="App navigation">
           {TABS.map((tab) => (
             <NavLink
               key={tab.to}
               to={tab.to}
               className={({ isActive }) =>
                 [
-                  "relative shrink-0 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  FOCUS_RING,
+                  "relative flex items-center px-3 text-sm transition-colors",
                   isActive
                     ? "text-white"
-                    : "text-[var(--color-app-muted)] hover:text-white",
+                    : "text-[var(--color-app-muted)] hover:text-[var(--color-app-muted-2)]",
                 ].join(" ")
               }
             >
@@ -64,7 +63,7 @@ export function AppTopBar() {
                   {tab.label}
                   {isActive && (
                     <span
-                      className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-accent"
+                      className="absolute inset-x-0 bottom-0 h-0.5 bg-accent"
                       aria-hidden="true"
                     />
                   )}
@@ -74,11 +73,11 @@ export function AppTopBar() {
           ))}
         </nav>
 
-        {/* Wallet */}
-        <div className="shrink-0">
+        {/* Right-side actions */}
+        <div className="shrink-0 flex items-center gap-3">
           <ConnectButton
             accountStatus="avatar"
-            chainStatus="none"
+            chainStatus="icon"
             showBalance={false}
           />
         </div>

@@ -11,6 +11,11 @@ import { ClearingPendingPanel } from "./ClearingPendingPanel";
 import { ChallengePanel } from "./ChallengePanel";
 import { SettledPanel } from "./SettledPanel";
 
+const CARD = {
+  background: "var(--color-app-surface)",
+  border: "1px solid var(--color-app-border)",
+};
+
 export function IssuanceDetail() {
   const { address, state, params, approvedAttestors, isLoading } = useIssuanceContext();
 
@@ -38,121 +43,126 @@ export function IssuanceDetail() {
 
   if (isLoading && state === undefined) {
     return (
-      <div className="animate-pulse space-y-6 max-w-5xl mx-auto p-6">
-        <div className="h-10 bg-white/5 rounded-lg w-1/3"></div>
-        <div className="h-64 bg-white/5 rounded-xl"></div>
+      <div className="space-y-4">
+        {[1, 2].map((i) => (
+          <div
+            key={i}
+            className="h-48 animate-pulse rounded-xl"
+            style={{ background: "var(--color-app-surface)" }}
+          />
+        ))}
       </div>
     );
   }
 
-  // Active window deadline based on state
   let activeDeadline: bigint | undefined;
-  if (state === ISSUANCE_STATE.COMMIT_OPEN) {
-    activeDeadline = params?.commitWindowEnd;
-  } else if (state === ISSUANCE_STATE.REVEAL_OPEN) {
-    activeDeadline = params?.revealWindowEnd;
-  }
+  if (state === ISSUANCE_STATE.COMMIT_OPEN) activeDeadline = params?.commitWindowEnd;
+  else if (state === ISSUANCE_STATE.REVEAL_OPEN) activeDeadline = params?.revealWindowEnd;
+
+  const tokenLabel = tokenName && tokenSymbol
+    ? `${String(tokenName)} · ${String(tokenSymbol)}`
+    : null;
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-8">
-      {/* Header section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-white tracking-tight">
-              {(tokenName as string) || "Sealed-Bid Offering"}
-            </h1>
-            {tokenSymbol && (
-              <span className="px-2.5 py-0.5 rounded bg-white/10 text-white font-mono text-xs font-semibold">
-                {String(tokenSymbol)}
-              </span>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main action column */}
+      <div className="lg:col-span-2 space-y-5">
+        {/* Title card */}
+        <div className="rounded-xl p-5" style={CARD}>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h2 className="text-lg font-semibold text-white">
+                  {tokenLabel || "Sealed-Bid Offering"}
+                </h2>
+                {state !== undefined && <StateBadge state={state} />}
+              </div>
+              <div className="text-xs font-mono mt-1" style={{ color: "var(--color-app-muted)" }}>
+                {address}
+              </div>
+            </div>
+            {activeDeadline !== undefined && (
+              <div className="text-right">
+                <div className="text-xs" style={{ color: "var(--color-app-muted)" }}>
+                  Phase Deadline
+                </div>
+                <CountdownTimer deadline={activeDeadline} className="text-base font-semibold text-white mt-0.5" />
+              </div>
             )}
-            {state !== undefined && <StateBadge state={state} />}
-          </div>
-          <div className="text-xs font-mono text-slate-400 mt-2 flex items-center gap-2">
-            <span>Contract:</span>
-            <span className="text-slate-300">{address}</span>
           </div>
         </div>
 
-        {activeDeadline !== undefined && (
-          <div className="flex flex-col items-start sm:items-end">
-            <span className="text-xs text-slate-400">Current Phase Deadline</span>
-            <div className="mt-1">
-              <CountdownTimer deadline={activeDeadline} className="text-lg font-bold" />
-            </div>
-          </div>
+        {/* State-specific action panel */}
+        {state === ISSUANCE_STATE.COMMIT_OPEN && <CommitPanel />}
+        {state === ISSUANCE_STATE.REVEAL_OPEN && <RevealPanel />}
+        {state === ISSUANCE_STATE.CLEARING_PENDING && <ClearingPendingPanel />}
+        {state === ISSUANCE_STATE.CHALLENGE_OPEN && <ChallengePanel />}
+        {(state === ISSUANCE_STATE.SETTLED || state === ISSUANCE_STATE.CANCELLED) && (
+          <SettledPanel />
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main state panel (2 columns) */}
-        <div className="lg:col-span-2">
-          {state === ISSUANCE_STATE.COMMIT_OPEN && <CommitPanel />}
-          {state === ISSUANCE_STATE.REVEAL_OPEN && <RevealPanel />}
-          {state === ISSUANCE_STATE.CLEARING_PENDING && <ClearingPendingPanel />}
-          {state === ISSUANCE_STATE.CHALLENGE_OPEN && <ChallengePanel />}
-          {(state === ISSUANCE_STATE.SETTLED || state === ISSUANCE_STATE.CANCELLED) && (
-            <SettledPanel />
-          )}
-        </div>
-
-        {/* Sidebar parameter details (1 column) */}
-        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 space-y-4 h-fit text-sm">
-          <h3 className="font-semibold text-white border-b border-white/10 pb-3">
-            Offering Parameters
-          </h3>
+      {/* Sidebar */}
+      <div className="space-y-5">
+        {/* Your Info card (Aave-style) */}
+        <div className="rounded-xl p-5 space-y-4" style={CARD}>
+          <h3 className="text-sm font-semibold text-white">Offering Parameters</h3>
 
           {params ? (
-            <div className="space-y-3.5 text-xs">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Total Supply</span>
-                <span className="text-slate-200 font-medium">{formatUnits(params.supply, 18)} tokens</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Reserve Price</span>
-                <span className="text-slate-200 font-medium">{formatDUSD(params.reservePrice)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Bidder Cap</span>
-                <span className="text-slate-200 font-medium">{params.capBps / 100}%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Min Holders</span>
-                <span className="text-slate-200 font-medium">{params.minHolders.toString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Min Bid Bond</span>
-                <span className="text-slate-200 font-medium">{formatDUSD(params.minBond)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Issuer</span>
-                <span className="text-slate-200 font-mono text-[11px] truncate max-w-[140px]" title={issuerAddress}>
-                  {issuerAddress || "—"}
-                </span>
-              </div>
+            <div className="space-y-3 text-sm">
+              {[
+                { label: "Total Supply", value: `${formatUnits(params.supply, 18)} tokens` },
+                { label: "Reserve Price", value: formatDUSD(params.reservePrice) },
+                { label: "Per-Bidder Cap", value: `${params.capBps / 100}%` },
+                { label: "Min Holders", value: params.minHolders.toString() },
+                { label: "Min Bond", value: formatDUSD(params.minBond) },
+                {
+                  label: "Issuer",
+                  value: issuerAddress
+                    ? `${(issuerAddress as string).slice(0, 8)}...${(issuerAddress as string).slice(-6)}`
+                    : "—",
+                },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex justify-between gap-4">
+                  <span style={{ color: "var(--color-app-muted)" }}>{label}</span>
+                  <span className="text-white font-medium text-right">{value}</span>
+                </div>
+              ))}
 
-              <div className="pt-3 border-t border-white/10 space-y-2">
-                <div className="text-slate-400 font-medium">Timeline</div>
-                <div className="flex justify-between text-[11px]">
-                  <span className="text-slate-400">Commit Ends</span>
-                  <span className="text-slate-300">{formatTimestamp(params.commitWindowEnd)}</span>
-                </div>
-                <div className="flex justify-between text-[11px]">
-                  <span className="text-slate-400">Reveal Ends</span>
-                  <span className="text-slate-300">{formatTimestamp(params.revealWindowEnd)}</span>
-                </div>
-                <div className="flex justify-between text-[11px]">
-                  <span className="text-slate-400">Challenge Length</span>
-                  <span className="text-slate-300">{Number(params.challengeWindowLength) / 60} minutes</span>
-                </div>
+              <div
+                className="pt-3 mt-1 space-y-2"
+                style={{ borderTop: "1px solid var(--color-app-border)" }}
+              >
+                <div className="text-xs font-medium text-white">Timeline</div>
+                {[
+                  { label: "Commit Ends", value: formatTimestamp(params.commitWindowEnd) },
+                  { label: "Reveal Ends", value: formatTimestamp(params.revealWindowEnd) },
+                  {
+                    label: "Challenge Window",
+                    value: `${Number(params.challengeWindowLength) / 60} min`,
+                  },
+                ].map(({ label, value }) => (
+                  <div key={label} className="flex justify-between gap-4 text-xs">
+                    <span style={{ color: "var(--color-app-muted)" }}>{label}</span>
+                    <span style={{ color: "var(--color-app-muted-2)" }} className="text-right">{value}</span>
+                  </div>
+                ))}
               </div>
 
               {approvedAttestors && approvedAttestors.length > 0 && (
-                <div className="pt-3 border-t border-white/10 space-y-1">
-                  <div className="text-slate-400 font-medium">Approved Attestors ({approvedAttestors.length})</div>
+                <div
+                  className="pt-3 mt-1 space-y-1.5"
+                  style={{ borderTop: "1px solid var(--color-app-border)" }}
+                >
+                  <div className="text-xs font-medium text-white">
+                    Attestors ({approvedAttestors.length})
+                  </div>
                   {approvedAttestors.map((att: string, idx: number) => (
-                    <div key={idx} className="font-mono text-[11px] text-slate-300 truncate">
+                    <div
+                      key={idx}
+                      className="text-[11px] font-mono truncate"
+                      style={{ color: "var(--color-app-muted)" }}
+                    >
                       {att}
                     </div>
                   ))}
@@ -160,8 +170,11 @@ export function IssuanceDetail() {
               )}
             </div>
           ) : (
-            <div className="text-slate-400 text-xs py-4 text-center">
-              Loading parameters...
+            <div
+              className="text-sm text-center py-6"
+              style={{ color: "var(--color-app-muted)" }}
+            >
+              Loading parameters…
             </div>
           )}
         </div>

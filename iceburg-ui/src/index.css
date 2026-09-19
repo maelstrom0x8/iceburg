@@ -19,18 +19,19 @@
 @theme {
   --font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
 
-  /* Brand accent range — every accent color in the UI must fall between
-     these two stops. All other color comes from white/black shades. */
+  /* Brand accent */
   --color-accent: #4db6ac;
   --color-accent-light: #80cbc4;
+  --color-accent-hover: #3da49a;
 
-  /* App shell — dark-only surface palette. Marketing pages never reference
-     these tokens so there is zero cross-contamination. */
-  --color-app-bg: #0b0f1a;
-  --color-app-surface: #111827;
-  --color-app-surface-2: #1a2235;
-  --color-app-border: rgba(255, 255, 255, 0.08);
-  --color-app-muted: rgba(255, 255, 255, 0.45);
+  /* App shell — Aave-style dark surface palette */
+  --color-app-bg:        #0d0e11;
+  --color-app-surface:   #14161d;
+  --color-app-surface-2: #1c1f2a;
+  --color-app-border:    rgba(255, 255, 255, 0.07);
+  --color-app-border-2:  rgba(255, 255, 255, 0.12);
+  --color-app-muted:     rgba(255, 255, 255, 0.40);
+  --color-app-muted-2:   rgba(255, 255, 255, 0.60);
 }
 
 :root {
@@ -45,8 +46,6 @@ body {
   color: light-dark(#000000, #ffffff);
 }
 
-/* Force dark browser chrome (scrollbars, input outlines, etc.) inside
-   the app shell. Set on the layout wrapper via data-theme="app". */
 [data-theme="app"] {
   color-scheme: dark;
 }
