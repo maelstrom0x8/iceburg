@@ -1,11 +1,18 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { MarketingLayout } from "./components/layout/MarketingLayout";
+import { AppLayout } from "./components/layout/AppLayout";
 import { Home } from "./pages/Home";
 import { StatusPage } from "./pages/StatusPage";
+import { IssuancesPage } from "./pages/app/IssuancesPage";
+import { IssuanceDetailPage } from "./pages/app/IssuanceDetailPage";
+import { ActivityPage } from "./pages/app/ActivityPage";
+import { IssuePage } from "./pages/app/IssuePage";
+import { ClearingPage } from "./pages/app/ClearingPage";
 
 function App() {
   return (
     <Routes>
+      {/* ── Marketing shell ── */}
       <Route element={<MarketingLayout />}>
         <Route path="/" element={<Home />} />
         <Route
@@ -49,16 +56,28 @@ function App() {
           }
         />
       </Route>
-      <Route
-        path="/app"
-        element={
-          <StatusPage
-            eyebrow="Iceburg App"
-            title="The app is under construction"
-            description="The issuer console isn't live yet — check back soon."
-          />
-        }
-      />
+
+      {/* ── App shell — entirely independent from marketing layout ── */}
+      <Route path="/app" element={<AppLayout />}>
+        {/* Default to issuances tab */}
+        <Route index element={<Navigate to="/app/issuances" replace />} />
+        <Route path="issuances" element={<IssuancesPage />} />
+        <Route path="issuances/:address" element={<IssuanceDetailPage />} />
+        <Route path="activity" element={<ActivityPage />} />
+        <Route path="issue" element={<IssuePage />} />
+        <Route path="clearing" element={<ClearingPage />} />
+        <Route
+          path="*"
+          element={
+            <div className="flex h-[60vh] flex-col items-center justify-center gap-3">
+              <p className="text-4xl font-bold text-white">404</p>
+              <p className="text-[var(--color-app-muted)]">
+                This page doesn't exist in the app.
+              </p>
+            </div>
+          }
+        />
+      </Route>
     </Routes>
   );
 }

@@ -59,3 +59,20 @@ export function formatPrice(value: bigint, decimals: number): string {
 
   return fractionStr.length > 0 ? `${sign}${wholeStr}.${fractionStr}` : `${sign}${wholeStr}`;
 }
+
+export function formatDUSD(wei: bigint): string {
+  const formatted = (Number(wei) / 1e18).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return `$${formatted} DUSD`;
+}
+
+export function formatUnits(wei: bigint, decimals: number = 18): string {
+  return (Number(wei) / 10 ** decimals).toLocaleString("en-US");
+}
+
+export function formatTimestamp(seconds: bigint | number): string {
+  const secs = typeof seconds === "bigint" ? Number(seconds) : seconds;
+  return new Date(secs * 1000).toLocaleString();
+}

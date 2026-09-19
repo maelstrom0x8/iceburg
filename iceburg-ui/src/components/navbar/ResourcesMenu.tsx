@@ -48,13 +48,7 @@ function ExternalLinkIcon() {
   );
 }
 
-function ChevronDownIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.75} className={className} aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="m4 6 4 4 4-4" />
-    </svg>
-  );
-}
+
 
 const RESOURCE_LINKS: ResourceLink[] = [
   {
