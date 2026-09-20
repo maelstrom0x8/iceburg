@@ -1,6 +1,7 @@
 import { AppSubHeader } from "../../components/layout/AppSubHeader";
 import { IssuanceTable } from "../../features/issuance-discovery/components/IssuanceTable";
 import { useIssuances } from "../../features/issuance-discovery/hooks/useIssuances";
+import { YourInfoCard } from "../../components/ui/YourInfoCard";
 
 function OfferingsIcon() {
   return (
@@ -34,7 +35,14 @@ export function IssuancesPage() {
       />
 
       <div className="mx-auto max-w-screen-xl px-6 py-8">
-        <IssuanceTable />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          <div className="lg:col-span-2">
+            <IssuanceTable />
+          </div>
+          <div className="lg:col-span-1">
+            <YourInfoCard />
+          </div>
+        </div>
       </div>
     </div>
   );
