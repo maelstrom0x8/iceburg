@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {Issuance} from "../src/Issuance.sol";
 import {SecurityToken} from "../src/SecurityToken.sol";
 import {MockERC20} from "./helpers/MockERC20.sol";
+import {FreezableMockERC20} from "./helpers/FreezableMockERC20.sol";
 
 contract IssuanceSettlementTest is Test {
     MockERC20 paymentToken;
@@ -159,6 +160,23 @@ contract IssuanceSettlementTest is Test {
         assertEq(securityToken.balanceOf(bidder3), 0);
         assertEq(securityToken.totalSupply(), 100);
 
+        assertEq(paymentToken.balanceOf(bidder1), bidder1BalanceBefore);
+        assertEq(issuance.claimable(bidder1), 200);
+        assertEq(issuance.claimable(bidder2), 0);
+        assertEq(issuance.claimable(bidder3), 200);
+        assertEq(issuance.claimable(issuer), 400 + 400);
+        assertEq(issuance.claimable(proposer), 10);
+        assertEq(paymentToken.balanceOf(address(issuance)), 1_200 + 10);
+
+        vm.prank(bidder1);
+        issuance.claim();
+        vm.prank(bidder3);
+        issuance.claim();
+        vm.prank(issuer);
+        issuance.claim();
+        vm.prank(proposer);
+        issuance.claim();
+
         assertEq(paymentToken.balanceOf(bidder1), bidder1BalanceBefore + 200);
         assertEq(paymentToken.balanceOf(bidder2), bidder2BalanceBefore + 0);
         assertEq(paymentToken.balanceOf(bidder3), bidder3BalanceBefore + 200);
@@ -166,6 +184,115 @@ contract IssuanceSettlementTest is Test {
         assertEq(paymentToken.balanceOf(proposer), proposerBalanceBefore + 10);
 
         assertEq(paymentToken.balanceOf(address(issuance)), 0);
+    }
+
+    function test_claim_revertsWithNothingToClaim() public {
+        _setUpToChallengeOpenWithCorrectClearing();
+        vm.warp(block.timestamp + challengeWindowLength);
+        issuance.closeChallengeWindow();
+        issuance.settle();
+
+        address bidder2 = vm.addr(2);
+        vm.prank(bidder2);
+        vm.expectRevert(Issuance.NothingToClaim.selector);
+        issuance.claim();
+    }
+
+    function test_claim_isIndependentPerAccount_secondClaimIsNoop() public {
+        address proposer = _setUpToChallengeOpenWithCorrectClearing();
+        vm.warp(block.timestamp + challengeWindowLength);
+        issuance.closeChallengeWindow();
+        issuance.settle();
+
+        address bidder1 = vm.addr(1);
+        vm.prank(bidder1);
+        issuance.claim();
+        assertEq(issuance.claimable(bidder1), 0);
+
+        vm.prank(bidder1);
+        vm.expectRevert(Issuance.NothingToClaim.selector);
+        issuance.claim();
+
+        assertEq(issuance.claimable(vm.addr(3)), 200);
+        assertEq(issuance.claimable(proposer), 10);
+    }
+
+    function test_settle_oneFrozenBidderDoesNotBlockSettlementOrOthersClaims() public {
+        FreezableMockERC20 freezable = new FreezableMockERC20();
+        securityToken = new SecurityToken("Series A Preferred", "SERA", issuer);
+
+        address[] memory attestors = new address[](1);
+        attestors[0] = attestor;
+        commitWindowEnd = uint64(block.timestamp + 1 days);
+        revealWindowEnd = uint64(block.timestamp + 2 days);
+
+        Issuance.IssuanceParams memory p = Issuance.IssuanceParams({
+            supply: 100,
+            reservePrice: 1,
+            capBps: 5_000,
+            minHolders: 2,
+            minBond: 1,
+            paymentToken: address(freezable),
+            securityToken: address(securityToken),
+            approvedAttestors: attestors,
+            commitWindowEnd: commitWindowEnd,
+            revealWindowEnd: revealWindowEnd,
+            challengeWindowLength: challengeWindowLength
+        });
+        issuance = new Issuance(p, issuer);
+        vm.prank(issuer);
+        securityToken.setMinter(address(issuance));
+
+        address bidder1 = vm.addr(1);
+        address bidder2 = vm.addr(2);
+        address bidder3 = vm.addr(3);
+        freezable.mint(bidder1, 10_000_000);
+        freezable.mint(bidder2, 10_000_000);
+        freezable.mint(bidder3, 10_000_000);
+        vm.prank(bidder1);
+        freezable.approve(address(issuance), type(uint256).max);
+        vm.prank(bidder2);
+        freezable.approve(address(issuance), type(uint256).max);
+        vm.prank(bidder3);
+        freezable.approve(address(issuance), type(uint256).max);
+
+        vm.prank(bidder1);
+        issuance.commitBid(keccak256(abi.encode(uint256(60), uint256(10), bytes32(uint256(1)), bidder1)), 1);
+        vm.prank(bidder2);
+        issuance.commitBid(keccak256(abi.encode(uint256(50), uint256(8), bytes32(uint256(2)), bidder2)), 1);
+        vm.prank(bidder3);
+        issuance.commitBid(keccak256(abi.encode(uint256(40), uint256(5), bytes32(uint256(3)), bidder3)), 1);
+        vm.warp(commitWindowEnd);
+        issuance.closeCommitWindow();
+
+        _reveal(1, 60, 10);
+        _reveal(2, 50, 8);
+        _reveal(3, 40, 5);
+        vm.warp(revealWindowEnd);
+        issuance.closeRevealWindow();
+
+        freezable.setFrozen(bidder3, true);
+
+        freezable.mint(address(this), 10);
+        freezable.approve(address(issuance), type(uint256).max);
+        issuance.proposeClearing(8, _capPeelingAllocations(), 10);
+
+        vm.warp(block.timestamp + challengeWindowLength);
+        issuance.closeChallengeWindow();
+
+        issuance.settle();
+
+        assertEq(issuance.claimable(bidder1), 200);
+        assertEq(issuance.claimable(bidder3), 200);
+
+        vm.prank(bidder1);
+        issuance.claim();
+        assertEq(freezable.balanceOf(bidder1), 10_000_000 - 600 + 200);
+
+        vm.prank(bidder3);
+        vm.expectRevert(abi.encodeWithSelector(FreezableMockERC20.AccountFrozen.selector, bidder3));
+        issuance.claim();
+        assertEq(issuance.claimable(bidder3), 200);
     }
 
     function test_settle_revertsForWrongState() public {
@@ -228,6 +355,18 @@ contract IssuanceSettlementTest is Test {
         vm.expectEmit(true, false, false, true);
         emit Issuance.Cancelled(proposer);
         issuance.cancelUnresolved();
+
+        assertEq(paymentToken.balanceOf(bidder1), bidder1BalanceBefore);
+        assertEq(issuance.claimable(bidder1), 20 * 15);
+        assertEq(issuance.claimable(bidder2), 20 * 12);
+        assertEq(issuance.claimable(proposer), 10);
+
+        vm.prank(bidder1);
+        issuance.claim();
+        vm.prank(bidder2);
+        issuance.claim();
+        vm.prank(proposer);
+        issuance.claim();
 
         assertEq(paymentToken.balanceOf(bidder1), bidder1BalanceBefore + 20 * 15);
         assertEq(paymentToken.balanceOf(bidder2), bidder2BalanceBefore + 20 * 12);

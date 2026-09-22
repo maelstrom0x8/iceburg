@@ -52,14 +52,27 @@ contract IssuanceInvariantsTest is Test {
         }
     }
 
-    function invariant_noResidualPaymentTokenAfterFinalization() public view {
+    function invariant_claimableLedgerNeverExceedsContractBalance() public view {
         Issuance issuance = handler.issuance();
+        address[] memory claimants = handler.knownClaimants();
+
+        uint256 totalClaimable;
+        for (uint256 i = 0; i < claimants.length; i++) {
+            totalClaimable += issuance.claimable(claimants[i]);
+        }
+
+        assertLe(
+            totalClaimable,
+            handler.paymentToken().balanceOf(address(issuance)),
+            "INV-7: claimable ledger promises more than the contract actually holds"
+        );
+
         if (!issuance.finalized()) return;
 
         assertEq(
             handler.paymentToken().balanceOf(address(issuance)),
-            0,
-            "settle/cancelUnresolved left a residual, unaccounted-for balance in the contract"
+            totalClaimable,
+            "settle/cancelUnresolved/claim left a residual balance the claimable ledger doesn't account for"
         );
     }
 

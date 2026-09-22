@@ -267,4 +267,23 @@ contract IssuanceHandler is Test {
     function bidderCount() external pure returns (uint256) {
         return BIDDER_COUNT;
     }
+
+    function knownClaimants() public view returns (address[] memory accounts) {
+        accounts = new address[](BIDDER_COUNT + 1 + 4);
+        uint256 idx;
+        for (uint256 i = 0; i < BIDDER_COUNT; i++) {
+            accounts[idx++] = bidders[i];
+        }
+        accounts[idx++] = issuer;
+        for (uint256 i = 0; i < 4; i++) {
+            accounts[idx++] = vm.addr(999 + i);
+        }
+    }
+
+    function claim(uint256 seed) external {
+        address[] memory accounts = knownClaimants();
+        address account = accounts[bound(seed, 0, accounts.length - 1)];
+        vm.prank(account);
+        try issuance.claim() {} catch {}
+    }
 }

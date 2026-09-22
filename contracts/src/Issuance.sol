@@ -90,6 +90,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
     error DiversityAchievable(uint256 distinctAtReserve, uint32 minHolders);
     error ChallengeWindowStillOpen();
     error AlreadyFinalized();
+    error NothingToClaim();
 
     event IssuanceCreated(
         address indexed issuer,
@@ -124,6 +125,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
     event NonWinnerRefunded(address indexed bidder, uint256 refund);
     event Settled(address indexed finalProposer, uint256 clearingPrice, uint256 bidCount);
     event Cancelled(address indexed finalProposer);
+    event Claimed(address indexed account, uint256 amount);
 
     address public immutable issuer;
     uint256 public immutable cap;
@@ -138,6 +140,8 @@ contract Issuance is ReentrancyGuard, EIP712 {
 
     mapping(address bidder => bytes32 commitment) public commitmentOf;
     mapping(address bidder => uint256 bond) public commitBondOf;
+
+    mapping(address account => uint256 amount) public claimable;
 
     bytes32 private constant ATTESTATION_TYPEHASH = keccak256("Attestation(address bidder,uint64 expiry)");
 
@@ -294,7 +298,6 @@ contract Issuance is ReentrancyGuard, EIP712 {
         state = State.CLEARING_PENDING;
         emit RevealWindowClosed();
 
-        IERC20 token = IERC20(_params.paymentToken);
         uint256 committerCount = _committers.length;
         for (uint256 i = 0; i < committerCount; i++) {
             address committer = _committers[i];
@@ -304,7 +307,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
                 commitBondOf[committer] = 0;
                 if (forfeitedBond > 0) {
                     emit BondForfeited(committer, forfeitedBond);
-                    token.safeTransfer(issuer, forfeitedBond);
+                    claimable[issuer] += forfeitedBond;
                 }
             }
         }
@@ -524,7 +527,6 @@ contract Issuance is ReentrancyGuard, EIP712 {
         Proposal storage p = _standingProposal;
         uint256 clearingPrice = p.clearingPrice;
         uint256 n = _bids.length;
-        IERC20 token = IERC20(_params.paymentToken);
         ISecurityToken securityToken = ISecurityToken(_params.securityToken);
 
         for (uint256 i = 0; i < n; i++) {
@@ -535,17 +537,17 @@ contract Issuance is ReentrancyGuard, EIP712 {
                 uint256 payment = clearingPrice * allocation;
                 uint256 refund = b.escrow - payment;
                 emit WinnerSettled(b.bidder, allocation, payment, refund);
-                if (refund > 0) token.safeTransfer(b.bidder, refund);
-                if (payment > 0) token.safeTransfer(issuer, payment);
+                if (refund > 0) claimable[b.bidder] += refund;
+                if (payment > 0) claimable[issuer] += payment;
                 securityToken.mint(b.bidder, allocation);
             } else {
                 emit NonWinnerRefunded(b.bidder, b.escrow);
-                if (b.escrow > 0) token.safeTransfer(b.bidder, b.escrow);
+                if (b.escrow > 0) claimable[b.bidder] += b.escrow;
             }
         }
 
         emit Settled(p.proposer, clearingPrice, n);
-        if (p.bond > 0) token.safeTransfer(p.proposer, p.bond);
+        if (p.bond > 0) claimable[p.proposer] += p.bond;
     }
 
     function cancelUnresolved() external nonReentrant {
@@ -553,14 +555,21 @@ contract Issuance is ReentrancyGuard, EIP712 {
         if (finalized) revert AlreadyFinalized();
         finalized = true;
 
-        IERC20 token = IERC20(_params.paymentToken);
         uint256 n = _bids.length;
         for (uint256 i = 0; i < n; i++) {
             Bid storage b = _bids[i];
-            if (b.escrow > 0) token.safeTransfer(b.bidder, b.escrow);
+            if (b.escrow > 0) claimable[b.bidder] += b.escrow;
         }
 
         emit Cancelled(_standingProposal.proposer);
-        if (_standingProposal.bond > 0) token.safeTransfer(_standingProposal.proposer, _standingProposal.bond);
+        if (_standingProposal.bond > 0) claimable[_standingProposal.proposer] += _standingProposal.bond;
+    }
+
+    function claim() external nonReentrant {
+        uint256 amount = claimable[msg.sender];
+        if (amount == 0) revert NothingToClaim();
+        claimable[msg.sender] = 0;
+        emit Claimed(msg.sender, amount);
+        IERC20(_params.paymentToken).safeTransfer(msg.sender, amount);
     }
 }

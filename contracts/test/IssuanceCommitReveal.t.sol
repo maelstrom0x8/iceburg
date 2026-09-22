@@ -277,9 +277,14 @@ contract IssuanceCommitRevealTest is Test {
         issuance.closeRevealWindow();
 
         assertEq(uint256(issuance.state()), uint256(Issuance.State.CLEARING_PENDING));
-        assertEq(paymentToken.balanceOf(issuer), issuerBalanceBefore + minBond);
+        assertEq(paymentToken.balanceOf(issuer), issuerBalanceBefore);
+        assertEq(issuance.claimable(issuer), minBond);
         assertEq(issuance.commitmentOf(noShow), bytes32(0));
         assertEq(issuance.commitBondOf(noShow), 0);
+
+        vm.prank(issuer);
+        issuance.claim();
+        assertEq(paymentToken.balanceOf(issuer), issuerBalanceBefore + minBond);
     }
 
     function test_closeRevealWindow_revertsIfStillOpen() public {
