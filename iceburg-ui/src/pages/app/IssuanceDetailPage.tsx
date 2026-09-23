@@ -8,6 +8,7 @@ import { IssuanceAbi, SecurityTokenAbi } from "../../contracts";
 import { StateBadge } from "../../components/ui/StateBadge";
 import { usePaymentTokenDecimals } from "../../hooks/usePaymentTokenDecimals";
 import { usePaymentTokenSymbol } from "../../hooks/usePaymentTokenSymbol";
+import { useIsTrustedIssuance } from "../../features/issuance-discovery/hooks/useIsTrustedIssuance";
 import { formatPrice } from "../../lib/format";
 
 function DetailPageHeader({ address }: { address: `0x${string}` }) {
@@ -83,8 +84,10 @@ function DetailPageHeader({ address }: { address: `0x${string}` }) {
 
 export function IssuanceDetailPage() {
   const { address } = useParams<{ address: string }>();
+  const validAddress = address && isAddress(address) ? (address as `0x${string}`) : undefined;
+  const { isTrusted, isLoading: checkingTrust } = useIsTrustedIssuance(validAddress);
 
-  if (!address || !isAddress(address)) {
+  if (!validAddress) {
     return (
       <div className="mx-auto max-w-screen-xl px-6 py-16 text-center">
         <h2 className="text-xl font-semibold mb-2" style={{ color: "var(--color-app-text)" }}>Invalid Offering Address</h2>
@@ -95,7 +98,30 @@ export function IssuanceDetailPage() {
     );
   }
 
-  const validAddress = address as `0x${string}`;
+  if (checkingTrust) {
+    return (
+      <div className="mx-auto max-w-screen-xl px-6 py-16 text-center">
+        <p className="text-sm" style={{ color: "var(--color-app-muted)" }}>
+          Verifying this offering was created by the Iceburg factory…
+        </p>
+      </div>
+    );
+  }
+
+  if (!isTrusted) {
+    return (
+      <div className="mx-auto max-w-screen-xl px-6 py-16 text-center">
+        <h2 className="text-xl font-semibold mb-2 text-red-500">Unrecognized Offering Contract</h2>
+        <p className="mx-auto max-w-md text-sm" style={{ color: "var(--color-app-muted)" }}>
+          <code className="break-all">{validAddress}</code> was not created by the Iceburg
+          <code> IssuanceFactory</code> on this network. This app will not let you approve a
+          token spend or submit a bid to an unverified contract — a link to an address like this
+          is a common way to trick a wallet into approving funds to an attacker. If you followed
+          a link to get here, don't interact with it.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <IssuanceProvider address={validAddress}>

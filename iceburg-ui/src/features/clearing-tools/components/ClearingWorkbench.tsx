@@ -5,6 +5,7 @@ import { isAddress, zeroAddress } from "viem";
 import { useIssuanceBids } from "../hooks/useIssuanceBids";
 import { useIssuanceState } from "../../issuance-detail/hooks/useIssuanceState";
 import { useIssuances } from "../../issuance-discovery/hooks/useIssuances";
+import { useIsTrustedIssuance } from "../../issuance-discovery/hooks/useIsTrustedIssuance";
 import { clear } from "../../../solver/clear";
 import type { Bid as SolverBid, ClearResult } from "../../../solver/types";
 import { IssuanceAbi, DemoUSDAbi } from "../../../contracts";
@@ -23,6 +24,7 @@ export function ClearingWorkbench() {
   const { address: walletAddress } = useAccount();
   const { issuances: allIssuances } = useIssuances();
   const validAddress = isAddress(selectedAddress) ? (selectedAddress as `0x${string}`) : undefined;
+  const { isTrusted: targetIsTrusted, isLoading: trustLoading } = useIsTrustedIssuance(validAddress);
 
   const issuanceState = useIssuanceState(validAddress || zeroAddress, walletAddress);
   const { bids, isLoading: loadingBids } = useIssuanceBids(validAddress);
@@ -94,6 +96,10 @@ export function ClearingWorkbench() {
 
   const handleProposeClearing = useCallback(async () => {
     if (!validAddress || !solverResult || !publicClient || !issuanceState.params) return;
+    if (!targetIsTrusted) {
+      setTxError("This contract was not created by the Iceburg factory — refusing to approve or submit to it.");
+      return;
+    }
     setSubmitting(true);
     setTxError(null);
 
@@ -143,11 +149,16 @@ export function ClearingWorkbench() {
     writeContractAsync,
     allocationsArray,
     paymentTokenAddress,
+    targetIsTrusted,
   ]);
 
   const handleChallengeClearing = useCallback(async () => {
     if (!validAddress || !solverResult || solverResult.kind !== "cleared" || !publicClient || !issuanceState.params)
       return;
+    if (!targetIsTrusted) {
+      setTxError("This contract was not created by the Iceburg factory — refusing to approve or submit to it.");
+      return;
+    }
 
     setSubmitting(true);
     setTxError(null);
@@ -188,6 +199,7 @@ export function ClearingWorkbench() {
     writeContractAsync,
     allocationsArray,
     paymentTokenAddress,
+    targetIsTrusted,
   ]);
 
   const surfaceStyle = {
@@ -249,9 +261,16 @@ export function ClearingWorkbench() {
             <StateBadge state={issuanceState.state} />
           </div>
         )}
+
+        {validAddress && !trustLoading && !targetIsTrusted && (
+          <div className="rounded-lg p-3 text-sm" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171" }}>
+            This contract was not created by the Iceburg factory on this network. Proposing,
+            challenging, or approving a token spend to it is disabled.
+          </div>
+        )}
       </div>
 
-      {validAddress && (
+      {validAddress && targetIsTrusted && (
         <div className="space-y-8">
           {/* Section: Bids Table */}
           <div className="rounded-xl p-6 space-y-4" style={surfaceStyle}>
