@@ -1,6 +1,5 @@
 import { NavLink, Link } from "react-router-dom";
 import { WalletButton } from "../ui/WalletButton";
-import { AppSettingsMenu } from "./AppSettingsMenu";
 
 interface Tab {
   to: string;
@@ -79,19 +78,9 @@ export function AppTopBar() {
           ))}
         </nav>
 
-        {/* Right-side wallet actions & settings */}
-        <div className="shrink-0 flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border"
-            style={{
-              borderColor: "var(--color-app-border-2)",
-              color: "var(--color-app-muted)",
-              background: "var(--color-app-surface-2)",
-            }}>
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-            Foundry
-          </div>
+        {/* Right-side wallet actions */}
+        <div className="shrink-0 flex items-center">
           <WalletButton />
-          <AppSettingsMenu />
         </div>
       </div>
     </header>
