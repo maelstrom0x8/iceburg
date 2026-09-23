@@ -16,6 +16,22 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Afacad";
+  src: url("./assets/fonts/Afacad-VariableFont_wght.ttf") format("truetype-variations");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Afacad";
+  src: url("./assets/fonts/Afacad-Italic-VariableFont_wght.ttf") format("truetype-variations");
+  font-weight: 400 700;
+  font-style: italic;
+  font-display: swap;
+}
+
 /* ── Design tokens ─────────────────────────────────────────────────────────── */
 
 :root {
@@ -23,6 +39,7 @@
   font-size: 14px;
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Afacad", "Inter", ui-sans-serif, system-ui, sans-serif;
 
   /* Brand */
   --color-accent:       #4db6ac;
@@ -54,6 +71,7 @@
 /* Expose tokens to Tailwind's theme engine */
 @theme {
   --font-sans:            var(--font-sans);
+  --font-display:         var(--font-display);
   --color-accent:         #4db6ac;
   --color-accent-light:   #80cbc4;
   --color-accent-hover:   #3da49a;
@@ -76,4 +94,85 @@ body {
   font-family: var(--font-sans);
   background: var(--color-app-bg);
   color: var(--color-app-text);
+}
+
+/*
+ * ── Marketing shell: fixed light theme, Afacad, 2x scale ───────────────────
+ * The landing page (everything under MarketingLayout) never follows system
+ * dark mode — it shadows --color-app-* with their fixed light values, unlike
+ * /app, which keeps following the system via light-dark() as normal. It also
+ * runs its own doubled type/spacing/radius scale and Afacad as its body font
+ * (Inter stays the /app font everywhere). Overriding these as CSS custom
+ * properties on a single scope class, rather than editing every component,
+ * means every existing Tailwind utility class (text-*, p-*, gap-*, size-*,
+ * rounded-*, max-w-*) already in use picks this up automatically — Tailwind
+ * v4 generates its utilities as calc()/var() expressions against exactly
+ * these tokens.
+ */
+.marketing-shell {
+  font-family: var(--font-display);
+
+  --color-app-bg:        #f8f9fa;
+  --color-app-surface:   #ffffff;
+  --color-app-surface-2: #f4f6f8;
+  --color-app-border:    rgba(0, 0, 0, 0.08);
+  --color-app-border-2:  rgba(0, 0, 0, 0.14);
+  --color-app-text:      #1a1f36;
+  --color-app-muted:     #6b7280;
+  --color-app-muted-2:   #374151;
+  --color-app-overlay:       rgba(0, 0, 0, 0.04);
+  --color-app-overlay-hover: rgba(0, 0, 0, 0.06);
+  --color-app-inset:         rgba(0, 0, 0, 0.05);
+
+  /* 2x scale */
+  --spacing: 0.5rem;
+  --text-xs:   1.5rem;
+  --text-sm:   1.75rem;
+  --text-base: 2rem;
+  --text-lg:   2.25rem;
+  --text-xl:   2.5rem;
+  --text-2xl:  3rem;
+  --text-3xl:  3.75rem;
+  --text-4xl:  4.5rem;
+  --text-5xl:  6rem;
+  --text-6xl:  7.5rem;
+  --radius-md:  0.75rem;
+  --radius-lg:  1rem;
+  --radius-xl:  1.5rem;
+  --radius-2xl: 2rem;
+  --container-lg:  64rem;
+  --container-2xl: 84rem;
+  --container-3xl: 96rem;
+  --container-4xl: 112rem;
+  --container-6xl: 144rem;
+}
+
+/*
+ * The header opts out of the landing page's full 2x scale, but stays
+ * bigger than the app's normal (1x) size — 1.5x, a middle ground.
+ * Re-declaring the scale tokens directly on the header element itself
+ * re-establishes these values for it and everything inside it,
+ * overriding what it would otherwise inherit from .marketing-shell.
+ */
+.marketing-header-scale {
+  --spacing: 0.375rem;
+  --text-xs:   1.125rem;
+  --text-sm:   1.3125rem;
+  --text-base: 1.5rem;
+  --text-lg:   1.6875rem;
+  --text-xl:   1.875rem;
+  --text-2xl:  2.25rem;
+  --text-3xl:  2.8125rem;
+  --text-4xl:  3.375rem;
+  --text-5xl:  4.5rem;
+  --text-6xl:  5.625rem;
+  --radius-md:  0.5625rem;
+  --radius-lg:  0.75rem;
+  --radius-xl:  1.125rem;
+  --radius-2xl: 1.5rem;
+  --container-lg:  48rem;
+  --container-2xl: 63rem;
+  --container-3xl: 72rem;
+  --container-4xl: 84rem;
+  --container-6xl: 108rem;
 }

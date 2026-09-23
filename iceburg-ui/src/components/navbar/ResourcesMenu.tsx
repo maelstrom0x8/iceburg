@@ -73,7 +73,7 @@ const RESOURCE_LINKS: ResourceLink[] = [
 ];
 
 const ITEM_CLASSES =
-  "flex items-start gap-3 rounded-xl p-3 text-left transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:hover:bg-white/10";
+  "flex items-start gap-3 rounded-xl p-3 text-left transition-colors hover:bg-app-overlay focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent";
 
 function ResourceItem({ link }: { link: ResourceLink }) {
   const body = (
@@ -82,13 +82,13 @@ function ResourceItem({ link }: { link: ResourceLink }) {
         {link.icon}
       </span>
       <span className="flex-1">
-        <span className="flex items-center gap-1 font-semibold text-black dark:text-white">
+        <span className="flex items-center gap-1 font-semibold text-app-text">
           {link.title}
           {link.external && (
             <ExternalLinkIcon />
           )}
         </span>
-        <span className="mt-0.5 block text-sm text-black/60 dark:text-white/60">{link.description}</span>
+        <span className="mt-0.5 block text-sm text-app-muted">{link.description}</span>
       </span>
     </>
   );
@@ -146,7 +146,7 @@ export function ResourcesMenu() {
         aria-expanded={open}
         aria-controls={menuId}
         onClick={() => setOpen((value) => !value)}
-        className="flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium text-black/70 transition-colors hover:bg-black/5 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
+        className="flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium text-app-muted transition-colors hover:bg-app-overlay hover:text-app-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         Resources
       </button>
@@ -155,7 +155,7 @@ export function ResourcesMenu() {
         <div
           id={menuId}
           role="menu"
-          className="absolute left-0 top-[calc(100%+0.5rem)] z-10 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-black/10 bg-white p-2 shadow-xl shadow-black/10 dark:border-white/10 dark:bg-neutral-950"
+          className="absolute left-0 top-[calc(100%+0.5rem)] z-10 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-app-border bg-app-surface p-2 shadow-xl shadow-black/10 dark:shadow-black/40"
         >
           {RESOURCE_LINKS.map((link) => (
             <ResourceItem key={link.title} link={link} />

@@ -7,9 +7,12 @@ import { useIssuanceState } from "../../issuance-detail/hooks/useIssuanceState";
 import { useIssuances } from "../../issuance-discovery/hooks/useIssuances";
 import { clear } from "../../../solver/clear";
 import type { Bid as SolverBid, ClearResult } from "../../../solver/types";
-import { IssuanceAbi, DemoUSDAddress, DemoUSDAbi } from "../../../contracts";
+import { IssuanceAbi, DemoUSDAbi } from "../../../contracts";
+import { usePaymentTokenAddress } from "../../../config/paymentToken";
+import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
+import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
 import { StateBadge } from "../../../components/ui/StateBadge";
-import { formatDUSD, formatUnits } from "../../../lib/format";
+import { formatAmount, formatPrice } from "../../../lib/format";
 import { getRevertReason } from "../../../lib/revertReasons";
 
 export function ClearingWorkbench() {
@@ -31,9 +34,12 @@ export function ClearingWorkbench() {
 
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
+  const paymentTokenAddress = usePaymentTokenAddress();
+  const { decimals } = usePaymentTokenDecimals();
+  const { symbol } = usePaymentTokenSymbol();
 
   const { data: bondAllowance } = useReadContract({
-    address: DemoUSDAddress,
+    address: paymentTokenAddress,
     abi: DemoUSDAbi,
     functionName: "allowance",
     args: walletAddress && validAddress ? [walletAddress, validAddress] : undefined,
@@ -94,9 +100,9 @@ export function ClearingWorkbench() {
     try {
       const minBond = issuanceState.params.minBond;
 
-      if (minBond > 0n && DemoUSDAddress && (!bondAllowance || bondAllowance < minBond)) {
+      if (minBond > 0n && paymentTokenAddress && (!bondAllowance || bondAllowance < minBond)) {
         const appHash = await writeContractAsync({
-          address: DemoUSDAddress,
+          address: paymentTokenAddress,
           abi: DemoUSDAbi,
           functionName: "approve",
           args: [validAddress, minBond * 10n],
@@ -136,6 +142,7 @@ export function ClearingWorkbench() {
     bondAllowance,
     writeContractAsync,
     allocationsArray,
+    paymentTokenAddress,
   ]);
 
   const handleChallengeClearing = useCallback(async () => {
@@ -148,9 +155,9 @@ export function ClearingWorkbench() {
     try {
       const minBond = issuanceState.params.minBond;
 
-      if (minBond > 0n && DemoUSDAddress && (!bondAllowance || bondAllowance < minBond)) {
+      if (minBond > 0n && paymentTokenAddress && (!bondAllowance || bondAllowance < minBond)) {
         const appHash = await writeContractAsync({
-          address: DemoUSDAddress,
+          address: paymentTokenAddress,
           abi: DemoUSDAbi,
           functionName: "approve",
           args: [validAddress, minBond * 10n],
@@ -180,6 +187,7 @@ export function ClearingWorkbench() {
     bondAllowance,
     writeContractAsync,
     allocationsArray,
+    paymentTokenAddress,
   ]);
 
   const surfaceStyle = {
@@ -285,8 +293,10 @@ export function ClearingWorkbench() {
                       <tr key={b.index} style={{ borderBottom: "1px solid var(--color-app-border)" }} className="hover:bg-[var(--color-app-surface-2)]">
                         <td className="px-4 py-3" style={{ color: "var(--color-app-muted)" }}>{b.index}</td>
                         <td className="px-4 py-3 font-mono" style={{ color: "var(--color-app-text)" }}>{b.bidder}</td>
-                        <td className="px-4 py-3 text-right font-sans" style={{ color: "var(--color-app-text)" }}>{formatUnits(b.qty, 18)}</td>
-                        <td className="px-4 py-3 text-right font-sans" style={{ color: "var(--color-app-text)" }}>{formatDUSD(b.price)}</td>
+                        <td className="px-4 py-3 text-right font-sans" style={{ color: "var(--color-app-text)" }}>{formatAmount(b.qty)}</td>
+                        <td className="px-4 py-3 text-right font-sans" style={{ color: "var(--color-app-text)" }}>
+                          {decimals !== undefined ? `${formatPrice(b.price, decimals)} ${symbol ?? ""}` : "…"}
+                        </td>
                         <td className="px-4 py-3 text-center font-sans">
                           {b.eligible ? (
                             <span className="text-emerald-500 font-semibold text-xs">Yes</span>
@@ -294,7 +304,9 @@ export function ClearingWorkbench() {
                             <span className="text-red-500 font-semibold text-xs">No</span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-right font-sans" style={{ color: "var(--color-app-text)" }}>{formatDUSD(b.escrow)}</td>
+                        <td className="px-4 py-3 text-right font-sans" style={{ color: "var(--color-app-text)" }}>
+                          {decimals !== undefined ? `${formatPrice(b.escrow, decimals)} ${symbol ?? ""}` : "…"}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -346,7 +358,7 @@ export function ClearingWorkbench() {
                     <div>
                       <div className="text-xs" style={{ color: "var(--color-app-muted)" }}>Clearing Price</div>
                       <div className="font-bold text-lg mt-1" style={{ color: "var(--color-accent)" }}>
-                        {formatDUSD(solverResult.price)} / token
+                        {decimals !== undefined ? `${formatPrice(solverResult.price, decimals)} ${symbol ?? ""} / token` : "…"}
                       </div>
                     </div>
                     <div>
@@ -358,9 +370,8 @@ export function ClearingWorkbench() {
                     <div>
                       <div className="text-xs" style={{ color: "var(--color-app-muted)" }}>Total Allocated</div>
                       <div className="font-semibold text-lg mt-1" style={{ color: "var(--color-app-text)" }}>
-                        {formatUnits(
+                        {formatAmount(
                           Array.from(solverResult.allocations.values()).reduce((a, b) => a + b, 0n),
-                          18
                         )}{" "}
                         tokens
                       </div>
@@ -385,7 +396,7 @@ export function ClearingWorkbench() {
                             <tr key={addr} style={{ borderBottom: "1px solid var(--color-app-border)" }}>
                               <td className="px-4 py-2" style={{ color: "var(--color-app-text)" }}>{addr}</td>
                               <td className="px-4 py-2 text-right font-sans font-medium text-emerald-500">
-                                {formatUnits(qty, 18)}
+                                {formatAmount(qty)}
                               </td>
                             </tr>
                           ))}

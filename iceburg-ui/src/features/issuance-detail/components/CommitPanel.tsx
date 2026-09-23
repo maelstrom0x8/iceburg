@@ -1,9 +1,12 @@
 import { useState, useCallback } from "react";
 import { useAccount, useWriteContract, usePublicClient, useReadContract } from "wagmi";
-import { keccak256, encodeAbiParameters, parseAbiParameters, parseUnits } from "viem";
-import { IssuanceAbi, DemoUSDAbi, DemoUSDAddress } from "../../../contracts";
+import { keccak256, encodeAbiParameters, parseAbiParameters, parseUnits, type Abi, type Address } from "viem";
+import { IssuanceAbi, DemoUSDAbi } from "../../../contracts";
 import { useIssuanceContext } from "../context/IssuanceContext";
 import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
+import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
+import { usePaymentTokenAddress } from "../../../config/paymentToken";
+import { useSponsoredKernelClient } from "../../../hooks/useSponsoredKernelClient";
 import { formatPrice } from "../../../lib/format";
 import { getRevertReason } from "../../../lib/revertReasons";
 
@@ -67,6 +70,8 @@ export function CommitPanel() {
   const { address: issuanceAddress, params, commitment } = useIssuanceContext();
   const { address: walletAddress, isConnected } = useAccount();
   const { decimals } = usePaymentTokenDecimals();
+  const { symbol } = usePaymentTokenSymbol();
+  const paymentTokenAddress = usePaymentTokenAddress();
   const publicClient = usePublicClient();
 
   const [qty, setQty] = useState("");
@@ -74,15 +79,28 @@ export function CommitPanel() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [sponsoredGas, setSponsoredGas] = useState(false);
 
   const { writeContractAsync } = useWriteContract();
+  const { getSponsoredClient, isAvailable: sponsorshipAvailable } = useSponsoredKernelClient();
+
+  const write = useCallback(
+    async (params: { address: Address; abi: Abi; functionName: string; args: readonly unknown[] }) => {
+      if (sponsoredGas) {
+        const sponsoredClient = await getSponsoredClient();
+        return sponsoredClient.writeContract({ ...params, chain: undefined });
+      }
+      return writeContractAsync(params);
+    },
+    [sponsoredGas, getSponsoredClient, writeContractAsync],
+  );
 
   const { data: currentAllowance } = useReadContract({
-    address: DemoUSDAddress,
+    address: paymentTokenAddress,
     abi: DemoUSDAbi,
     functionName: "allowance",
     args: walletAddress ? [walletAddress, issuanceAddress] : undefined,
-    query: { enabled: !!walletAddress && !!DemoUSDAddress, refetchInterval: 15_000 },
+    query: { enabled: !!walletAddress && !!paymentTokenAddress, refetchInterval: 15_000 },
   });
 
   const hasCommitted =
@@ -108,10 +126,10 @@ export function CommitPanel() {
         const allowance = (currentAllowance as bigint | undefined) ?? 0n;
 
         if (allowance < totalNeeded) {
-          if (!DemoUSDAddress) throw new Error("Payment token address not configured.");
+          if (!paymentTokenAddress) throw new Error("Payment token address not configured.");
           setPhase("approving");
-          const approveHash = await writeContractAsync({
-            address: DemoUSDAddress,
+          const approveHash = await write({
+            address: paymentTokenAddress,
             abi: DemoUSDAbi,
             functionName: "approve",
             args: [issuanceAddress, totalNeeded],
@@ -130,7 +148,7 @@ export function CommitPanel() {
         });
 
         setPhase("committing");
-        const hash = await writeContractAsync({
+        const hash = await write({
           address: issuanceAddress,
           abi: IssuanceAbi,
           functionName: "commitBid",
@@ -147,7 +165,7 @@ export function CommitPanel() {
     },
     [
       walletAddress, publicClient, params, decimals, qty, price,
-      currentAllowance, issuanceAddress, writeContractAsync,
+      currentAllowance, issuanceAddress, write, paymentTokenAddress,
     ],
   );
 
@@ -195,7 +213,7 @@ export function CommitPanel() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {phase === "approving" && (
-        <TxBanner message="Approving DemoUSD spend… confirm in your wallet." />
+        <TxBanner message={`Approving ${symbol ?? "payment token"} spend… confirm in your wallet.`} />
       )}
       {phase === "committing" && (
         <TxBanner message="Submitting commitment… confirm in your wallet." />
@@ -221,7 +239,7 @@ export function CommitPanel() {
       </div>
 
       <div>
-        <label htmlFor="commit-price" style={LABEL_STYLE}>Price per token (DUSD)</label>
+        <label htmlFor="commit-price" style={LABEL_STYLE}>Price per token{symbol ? ` (${symbol})` : ""}</label>
         <input
           id="commit-price"
           type="number"
@@ -236,7 +254,7 @@ export function CommitPanel() {
         />
         {params && decimals !== undefined && (
           <p className="mt-1 text-xs" style={{ color: "var(--color-app-muted)" }}>
-            Reserve price: {formatPrice(params.reservePrice, decimals)} DUSD
+            Reserve price: {formatPrice(params.reservePrice, decimals)} {symbol}
           </p>
         )}
       </div>
@@ -252,13 +270,13 @@ export function CommitPanel() {
           <div className="flex justify-between">
             <span style={{ color: "var(--color-app-muted)" }}>Escrow</span>
             <span style={{ color: "var(--color-app-text)" }} className="font-medium">
-              {formatPrice(estimatedEscrow, decimals)} DUSD
+              {formatPrice(estimatedEscrow, decimals)} {symbol}
             </span>
           </div>
           <div className="flex justify-between">
             <span style={{ color: "var(--color-app-muted)" }}>Bond</span>
             <span style={{ color: "var(--color-app-text)" }} className="font-medium">
-              {formatPrice(bondRequired, decimals)} DUSD
+              {formatPrice(bondRequired, decimals)} {symbol}
             </span>
           </div>
           <div
@@ -267,10 +285,22 @@ export function CommitPanel() {
           >
             <span style={{ color: "var(--color-app-muted)" }}>Total</span>
             <span className="text-accent">
-              {formatPrice(estimatedEscrow + bondRequired, decimals)} DUSD
+              {formatPrice(estimatedEscrow + bondRequired, decimals)} {symbol}
             </span>
           </div>
         </div>
+      )}
+
+      {sponsorshipAvailable && (
+        <label className="flex items-center gap-2 text-xs" style={{ color: "var(--color-app-muted)" }}>
+          <input
+            type="checkbox"
+            checked={sponsoredGas}
+            onChange={(e) => setSponsoredGas(e.target.checked)}
+            disabled={!canSubmit || pending}
+          />
+          Use gas-sponsored transactions (experimental)
+        </label>
       )}
 
       <button

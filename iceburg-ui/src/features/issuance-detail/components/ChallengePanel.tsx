@@ -4,7 +4,9 @@ import { useState, useCallback } from "react";
 import { IssuanceAbi } from "../../../contracts";
 import { useIssuanceContext } from "../context/IssuanceContext";
 import { getRevertReason } from "../../../lib/revertReasons";
-import { formatDUSD } from "../../../lib/format";
+import { formatPrice } from "../../../lib/format";
+import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
+import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
 import { CountdownTimer } from "../../../components/ui/CountdownTimer";
 
 const CARD = {
@@ -21,6 +23,8 @@ export function ChallengePanel() {
   const { address, standingProposal, state, refetch } = useIssuanceContext();
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
+  const { decimals } = usePaymentTokenDecimals();
+  const { symbol } = usePaymentTokenSymbol();
 
   const [closing, setClosing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -67,7 +71,9 @@ export function ChallengePanel() {
           <div>
             <div className="text-xs mb-1" style={{ color: "var(--color-app-muted)" }}>Clearing Price</div>
             <div className="font-medium" style={{ color: "var(--color-app-text)" }}>
-              {formatDUSD(standingProposal.clearingPrice)} / token
+              {decimals !== undefined
+                ? `${formatPrice(standingProposal.clearingPrice, decimals)} ${symbol ?? ""} / token`
+                : "…"}
             </div>
           </div>
           <div>

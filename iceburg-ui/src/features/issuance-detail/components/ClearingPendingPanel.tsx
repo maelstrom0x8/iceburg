@@ -3,7 +3,9 @@ import { useWriteContract, usePublicClient } from "wagmi";
 import { useState, useCallback } from "react";
 import { IssuanceAbi } from "../../../contracts";
 import { useIssuanceContext } from "../context/IssuanceContext";
-import { formatDUSD, formatUnits } from "../../../lib/format";
+import { formatAmount, formatPrice } from "../../../lib/format";
+import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
+import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
 import { getRevertReason } from "../../../lib/revertReasons";
 
 const CARD = {
@@ -20,6 +22,8 @@ export function ClearingPendingPanel() {
   const { address, params, state, refetch } = useIssuanceContext();
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
+  const { decimals } = usePaymentTokenDecimals();
+  const { symbol } = usePaymentTokenSymbol();
 
   const [closing, setClosing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -64,13 +68,13 @@ export function ClearingPendingPanel() {
           <div>
             <div className="text-xs mb-1" style={{ color: "var(--color-app-muted)" }}>Total Supply</div>
             <div className="font-medium" style={{ color: "var(--color-app-text)" }}>
-              {formatUnits(params.supply, 18)} tokens
+              {formatAmount(params.supply)} tokens
             </div>
           </div>
           <div>
             <div className="text-xs mb-1" style={{ color: "var(--color-app-muted)" }}>Reserve Price</div>
             <div className="font-medium" style={{ color: "var(--color-app-text)" }}>
-              {formatDUSD(params.reservePrice)} / token
+              {decimals !== undefined ? `${formatPrice(params.reservePrice, decimals)} ${symbol ?? ""} / token` : "…"}
             </div>
           </div>
           <div>

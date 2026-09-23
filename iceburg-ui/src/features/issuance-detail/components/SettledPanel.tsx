@@ -2,7 +2,9 @@ import { useAccount, useReadContract, useWriteContract, usePublicClient } from "
 import { useState, useCallback } from "react";
 import { IssuanceAbi, SecurityTokenAbi } from "../../../contracts";
 import { useIssuanceContext } from "../context/IssuanceContext";
-import { formatDUSD, formatUnits } from "../../../lib/format";
+import { formatAmount, formatPrice } from "../../../lib/format";
+import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
+import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
 import { getRevertReason } from "../../../lib/revertReasons";
 
 const INSET = {
@@ -41,6 +43,9 @@ export function SettledPanel() {
     args: walletAddress ? [walletAddress] : undefined,
     query: { enabled: Boolean(securityTokenAddress && walletAddress) },
   });
+
+  const { decimals: paymentDecimals } = usePaymentTokenDecimals();
+  const { symbol: paymentSymbol } = usePaymentTokenSymbol();
 
   const isIssuer =
     walletAddress &&
@@ -121,7 +126,9 @@ export function SettledPanel() {
         <div>
           <div className="text-xs mb-1" style={{ color: "var(--color-app-muted)" }}>Final Clearing Price</div>
           <div className="font-semibold text-lg text-emerald-500">
-            {standingProposal ? formatDUSD(standingProposal.clearingPrice) : "—"} / token
+            {standingProposal && paymentDecimals !== undefined
+              ? `${formatPrice(standingProposal.clearingPrice, paymentDecimals)} ${paymentSymbol ?? ""} / token`
+              : "—"}
           </div>
         </div>
         <div>
@@ -134,7 +141,7 @@ export function SettledPanel() {
           <div className="text-xs mb-1" style={{ color: "var(--color-app-muted)" }}>Your Token Balance</div>
           <div className="font-medium" style={{ color: "var(--color-app-text)" }}>
             {userTokenBalance !== undefined
-              ? `${formatUnits(userTokenBalance as bigint, 18)} ${tokenSymbol ? String(tokenSymbol) : ""}`
+              ? `${formatAmount(userTokenBalance as bigint)} ${tokenSymbol ? String(tokenSymbol) : ""}`
               : "Connect wallet to view"}
           </div>
         </div>

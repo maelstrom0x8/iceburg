@@ -3,7 +3,9 @@ import { IssuanceAbi, SecurityTokenAbi } from "../../../contracts";
 import { useIssuanceContext } from "../context/IssuanceContext";
 import { StateBadge } from "../../../components/ui/StateBadge";
 import { CountdownTimer } from "../../../components/ui/CountdownTimer";
-import { formatDUSD, formatUnits, formatTimestamp } from "../../../lib/format";
+import { formatAmount, formatPrice, formatTimestamp } from "../../../lib/format";
+import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
+import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
 import { ISSUANCE_STATE } from "../../../lib/issuanceStage";
 import { CommitPanel } from "./CommitPanel";
 import { RevealPanel } from "./RevealPanel";
@@ -40,6 +42,9 @@ export function IssuanceDetail() {
     functionName: "symbol",
     query: { enabled: Boolean(securityTokenAddress) },
   });
+
+  const { decimals: paymentDecimals } = usePaymentTokenDecimals();
+  const { symbol: paymentSymbol } = usePaymentTokenSymbol();
 
   if (isLoading && state === undefined) {
     return (
@@ -111,11 +116,23 @@ export function IssuanceDetail() {
           {params ? (
             <div className="space-y-3 text-sm">
               {[
-                { label: "Total Supply", value: `${formatUnits(params.supply, 18)} tokens` },
-                { label: "Reserve Price", value: formatDUSD(params.reservePrice) },
+                { label: "Total Supply", value: `${formatAmount(params.supply)} tokens` },
+                {
+                  label: "Reserve Price",
+                  value:
+                    paymentDecimals !== undefined
+                      ? `${formatPrice(params.reservePrice, paymentDecimals)} ${paymentSymbol ?? ""}`
+                      : "…",
+                },
                 { label: "Per-Bidder Cap", value: `${params.capBps / 100}%` },
                 { label: "Min Holders", value: params.minHolders.toString() },
-                { label: "Min Bond", value: formatDUSD(params.minBond) },
+                {
+                  label: "Min Bond",
+                  value:
+                    paymentDecimals !== undefined
+                      ? `${formatPrice(params.minBond, paymentDecimals)} ${paymentSymbol ?? ""}`
+                      : "…",
+                },
                 {
                   label: "Issuer",
                   value: issuerAddress

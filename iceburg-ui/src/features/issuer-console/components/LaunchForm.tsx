@@ -3,7 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { parseUnits, isAddress } from "viem";
 import { useAccount, useReadContract, useWriteContract, usePublicClient } from "wagmi";
 import { useLaunchOffering } from "../../../hooks/useLaunchOffering";
-import { DemoUSDAddress, DemoUSDAbi, IssuanceFactoryAddress } from "../../../contracts";
+import { DemoUSDAbi, IssuanceFactoryAddressByChain, useContractAddress } from "../../../contracts";
+import { usePaymentTokenAddress } from "../../../config/paymentToken";
+import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
+import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
 import { getRevertReason } from "../../../lib/revertReasons";
 
 export function LaunchForm() {
@@ -12,6 +15,10 @@ export function LaunchForm() {
   const { launch, status: launchStatus } = useLaunchOffering();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
+  const paymentTokenAddress = usePaymentTokenAddress();
+  const issuanceFactoryAddress = useContractAddress(IssuanceFactoryAddressByChain);
+  const { decimals } = usePaymentTokenDecimals();
+  const { symbol: paymentSymbol } = usePaymentTokenSymbol();
 
   // Form states
   const [tokenName, setTokenName] = useState("");
@@ -35,11 +42,11 @@ export function LaunchForm() {
 
   // Check DemoUSD balance and allowance for creator if bond > 0
   const { data: allowance } = useReadContract({
-    address: DemoUSDAddress,
+    address: paymentTokenAddress,
     abi: DemoUSDAbi,
     functionName: "allowance",
-    args: walletAddress && IssuanceFactoryAddress ? [walletAddress, IssuanceFactoryAddress] : undefined,
-    query: { enabled: Boolean(walletAddress && IssuanceFactoryAddress) },
+    args: walletAddress && issuanceFactoryAddress ? [walletAddress, issuanceFactoryAddress] : undefined,
+    query: { enabled: Boolean(walletAddress && issuanceFactoryAddress) },
   });
 
   const handleSubmit = useCallback(
@@ -57,9 +64,14 @@ export function LaunchForm() {
         return;
       }
 
+      if (decimals === undefined) {
+        setErrorMsg("Payment token details are still loading — try again in a moment.");
+        return;
+      }
+
       const parsedSupply = Number(supplyInput);
-      if (isNaN(parsedSupply) || parsedSupply <= 0) {
-        setErrorMsg("Supply must be a positive number.");
+      if (isNaN(parsedSupply) || parsedSupply <= 0 || !Number.isInteger(parsedSupply)) {
+        setErrorMsg("Supply must be a positive whole number.");
         return;
       }
 
@@ -100,18 +112,21 @@ export function LaunchForm() {
       const revealWindowEnd = BigInt(nowSec + commitSec + revealSec);
       const challengeWindowLength = BigInt(challengeSec);
 
-      const supplyWei = parseUnits(supplyInput, 18);
-      const reservePriceWei = parseUnits(reservePriceInput, 18);
-      const minBondWei = parseUnits(minBondInput, 18);
+      // SecurityToken.decimals() is overridden to 0 — supply is a whole-unit
+      // share count, never scaled. Reserve price and bond are in the payment
+      // token's own decimals (system_architecture.md §4.1).
+      const supplyWei = BigInt(supplyInput);
+      const reservePriceWei = parseUnits(reservePriceInput, decimals);
+      const minBondWei = parseUnits(minBondInput, decimals);
 
       setSubmitting(true);
       try {
-        if (minBondWei > 0n && allowance !== undefined && allowance < minBondWei && DemoUSDAddress && IssuanceFactoryAddress && publicClient) {
+        if (minBondWei > 0n && allowance !== undefined && allowance < minBondWei && paymentTokenAddress && issuanceFactoryAddress && publicClient) {
           const appHash = await writeContractAsync({
-            address: DemoUSDAddress,
+            address: paymentTokenAddress,
             abi: DemoUSDAbi,
             functionName: "approve",
-            args: [IssuanceFactoryAddress, minBondWei * 100n],
+            args: [issuanceFactoryAddress, minBondWei * 100n],
           });
           await publicClient.waitForTransactionReceipt({ hash: appHash });
         }
@@ -153,6 +168,9 @@ export function LaunchForm() {
       allowance,
       publicClient,
       writeContractAsync,
+      paymentTokenAddress,
+      issuanceFactoryAddress,
+      decimals,
       launch,
       navigate,
     ]
@@ -233,6 +251,8 @@ export function LaunchForm() {
             </label>
             <input
               type="number"
+              min="1"
+              step="1"
               value={supplyInput}
               onChange={(e) => setSupplyInput(e.target.value)}
               className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
@@ -242,7 +262,7 @@ export function LaunchForm() {
           </div>
           <div>
             <label className="block text-xs font-medium mb-1" style={labelStyle}>
-              Reserve Price (DUSD / token)
+              Reserve Price{paymentSymbol ? ` (${paymentSymbol} / token)` : ""}
             </label>
             <input
               type="number"
@@ -271,7 +291,7 @@ export function LaunchForm() {
           </div>
           <div>
             <label className="block text-xs font-medium mb-1" style={labelStyle}>
-              Minimum Required Bond (DUSD)
+              Minimum Required Bond{paymentSymbol ? ` (${paymentSymbol})` : ""}
             </label>
             <input
               type="number"

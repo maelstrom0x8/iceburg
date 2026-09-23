@@ -3,7 +3,9 @@ import { useReadContract } from "wagmi";
 import { IssuanceAbi } from "../../../contracts";
 import { StateBadge } from "../../../components/ui/StateBadge";
 import { CountdownTimer } from "../../../components/ui/CountdownTimer";
-import { formatDUSD, formatUnits } from "../../../lib/format";
+import { formatAmount, formatPrice } from "../../../lib/format";
+import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
+import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
 import { useIssuances, type IssuanceSummary } from "../hooks/useIssuances";
 
 const TH = "px-4 py-3 text-left text-xs font-medium uppercase tracking-wider";
@@ -48,6 +50,9 @@ function IssuanceRow({
     query: { refetchInterval: 12_000 },
   });
 
+  const { decimals } = usePaymentTokenDecimals();
+  const { symbol } = usePaymentTokenSymbol();
+
   const params = rawParams as
     | readonly [bigint, bigint, number, number, bigint, `0x${string}`, `0x${string}`, bigint, bigint, bigint]
     | undefined;
@@ -77,15 +82,17 @@ function IssuanceRow({
         <StateBadge state={stateNum} />
       </td>
       <td className={`${TD} tabular-nums font-medium`}>
-        {reservePrice !== undefined ? (
-          <span style={{ color: "var(--color-app-text)" }}>{formatDUSD(reservePrice)}</span>
+        {reservePrice !== undefined && decimals !== undefined ? (
+          <span style={{ color: "var(--color-app-text)" }}>
+            {formatPrice(reservePrice, decimals)} {symbol}
+          </span>
         ) : (
           <Skeleton className="w-20" />
         )}
       </td>
       <td className={`${TD} tabular-nums`}>
         {supply !== undefined ? (
-          <span style={{ color: "var(--color-app-text)" }}>{formatUnits(supply, 18)}</span>
+          <span style={{ color: "var(--color-app-text)" }}>{formatAmount(supply)}</span>
         ) : (
           <Skeleton className="w-16" />
         )}

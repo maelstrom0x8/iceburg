@@ -5,10 +5,10 @@ import { ResourcesMenu } from "./ResourcesMenu";
 const FOCUS_RING = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent";
 
 const NAV_LINK_CLASSES =
-  `rounded-full px-3 py-2 text-sm font-medium transition-colors hover:bg-black/5 dark:hover:bg-white/10 ${FOCUS_RING}`;
+  `rounded-full px-3 py-2 text-sm font-medium text-app-muted transition-colors hover:bg-app-overlay hover:text-app-text ${FOCUS_RING}`;
 
 const USE_ICEBURG_BASE_CLASSES =
-  `rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80 ${FOCUS_RING}`;
+  `rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover ${FOCUS_RING}`;
 
 function IcebergMark() {
   return (
@@ -40,11 +40,7 @@ function AboutLink({ className }: { className?: string }) {
     <NavLink
       to="/about"
       className={({ isActive }) =>
-        `${className ?? NAV_LINK_CLASSES} ${
-          isActive
-            ? "text-black/70 dark:text-white"
-            : "text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white"
-        }`
+        `${className ?? NAV_LINK_CLASSES} ${isActive ? "text-app-text" : ""}`
       }
     >
       About
@@ -82,11 +78,11 @@ export function Navbar() {
   }
 
   return (
-    <header className={`sticky top-0 z-50 border-b border-black/10 bg-white/80 backdrop-blur transition-shadow dark:border-white/10 dark:bg-black/80${scrolled ? " shadow-md shadow-black/10 dark:shadow-black/40" : ""}`}>
+    <header className={`marketing-header-scale sticky top-0 z-50 border-b border-app-border bg-app-surface/80 backdrop-blur transition-shadow${scrolled ? " shadow-md shadow-black/10 dark:shadow-black/40" : ""}`}>
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6" aria-label="Primary">
         <Link to="/" className={`flex items-center gap-2 rounded-md ${FOCUS_RING}`}>
           <IcebergMark />
-          <span className="text-lg font-semibold tracking-tight text-black dark:text-white">Iceburg</span>
+          <span className="text-lg font-semibold tracking-tight text-app-text">Iceburg</span>
         </Link>
 
         <div className="hidden items-center gap-1 md:flex">
@@ -103,7 +99,7 @@ export function Navbar() {
             aria-controls="mobile-nav"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             onClick={() => setMobileOpen((value) => !value)}
-            className={`inline-flex size-10 items-center justify-center rounded-full text-black hover:bg-black/5 md:hidden dark:text-white dark:hover:bg-white/10 ${FOCUS_RING}`}
+            className={`inline-flex size-10 items-center justify-center rounded-full text-app-text hover:bg-app-overlay md:hidden ${FOCUS_RING}`}
           >
             {mobileOpen ? <CloseIcon /> : <HamburgerIcon />}
           </button>
@@ -111,7 +107,7 @@ export function Navbar() {
       </nav>
 
       {mobileOpen && (
-        <div id="mobile-nav" className="border-t border-black/10 px-4 pb-4 md:hidden dark:border-white/10">
+        <div id="mobile-nav" className="border-t border-app-border px-4 pb-4 md:hidden">
           <div className="flex flex-col items-start gap-1 pt-2">
             <ResourcesMenu />
             <AboutLink className={`w-full ${NAV_LINK_CLASSES}`} />
