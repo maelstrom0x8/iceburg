@@ -1,5 +1,27 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
-import { foundry, sepolia } from "wagmi/chains";
+import { defineChain } from "viem";
+import { foundry, arbitrum, arbitrumSepolia } from "wagmi/chains";
+
+export const robinhoodChainTestnet = defineChain({
+  id: 46630,
+  name: "Robinhood Chain Testnet",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: { default: { http: ["https://rpc.testnet.chain.robinhood.com"] } },
+  blockExplorers: {
+    default: { name: "Blockscout", url: "https://explorer.testnet.chain.robinhood.com" },
+  },
+  testnet: true,
+});
+
+export const robinhoodChain = defineChain({
+  id: 4663,
+  name: "Robinhood Chain",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: { default: { http: ["https://rpc.mainnet.chain.robinhood.com"] } },
+  blockExplorers: {
+    default: { name: "Blockscout", url: "https://robinhoodchain.blockscout.com" },
+  },
+});
 
 // WalletConnect requires a non-empty projectId or RainbowKit throws at startup
 // (crashing the whole app). Get a free one at https://cloud.reown.com and put it
@@ -18,6 +40,6 @@ if (!import.meta.env.VITE_WALLETCONNECT_PROJECT_ID) {
 export const wagmiConfig = getDefaultConfig({
   appName: "Iceburg",
   projectId: walletConnectProjectId,
-  chains: [foundry, sepolia],
+  chains: [foundry, arbitrumSepolia, arbitrum, robinhoodChainTestnet, robinhoodChain],
   ssr: false,
 });

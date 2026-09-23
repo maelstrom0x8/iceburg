@@ -255,6 +255,32 @@ export const IssuanceAbi = [
   },
   {
     "type": "function",
+    "name": "claim",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "claimable",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "closeChallengeWindow",
     "inputs": [],
     "outputs": [],
@@ -723,6 +749,25 @@ export const IssuanceAbi = [
   },
   {
     "type": "event",
+    "name": "Claimed",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "ClearingChallenged",
     "inputs": [
       {
@@ -1180,6 +1225,11 @@ export const IssuanceAbi = [
   },
   {
     "type": "error",
+    "name": "NothingToClaim",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "ProrationInconsistent",
     "inputs": [
       {
@@ -1343,4 +1393,4 @@ export const IssuanceAbi = [
   }
 ] as const;
 
-export const IssuanceAddress = undefined as `0x${string}` | undefined;
+export const IssuanceAddressByChain: Record<number, `0x${string}`> = {};

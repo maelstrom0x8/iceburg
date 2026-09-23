@@ -1,7 +1,8 @@
 import { useCallback, useState } from "react";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { parseEventLogs, zeroAddress } from "viem";
-import { DemoUSDAddress, IssuanceFactoryAbi, IssuanceFactoryAddress } from "../contracts";
+import { IssuanceFactoryAbi, IssuanceFactoryAddressByChain, useContractAddress } from "../contracts";
+import { usePaymentTokenAddress } from "../config/paymentToken";
 
 export interface LaunchFormValues {
   supply: bigint;
@@ -27,6 +28,8 @@ export function useLaunchOffering(): {
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
   const { address: connectedAddress } = useAccount();
+  const issuanceFactoryAddress = useContractAddress(IssuanceFactoryAddressByChain);
+  const paymentTokenAddress = usePaymentTokenAddress();
   const [status, setStatus] = useState<LaunchStatus>("idle");
   const [error, setError] = useState<Error | null>(null);
 
@@ -42,15 +45,15 @@ export function useLaunchOffering(): {
         if (!publicClient) {
           throw new Error("No RPC connection is available.");
         }
-        if (!IssuanceFactoryAddress) {
+        if (!issuanceFactoryAddress) {
           throw new Error("IssuanceFactory address is not configured for this network.");
         }
-        if (!DemoUSDAddress) {
+        if (!paymentTokenAddress) {
           throw new Error("Payment token address is not configured for this network.");
         }
 
         const hash = await writeContractAsync({
-          address: IssuanceFactoryAddress,
+          address: issuanceFactoryAddress,
           abi: IssuanceFactoryAbi,
           functionName: "createIssuance",
           args: [
@@ -60,7 +63,7 @@ export function useLaunchOffering(): {
               capBps: form.capBps,
               minHolders: form.minHolders,
               minBond: form.minBond,
-              paymentToken: DemoUSDAddress,
+              paymentToken: paymentTokenAddress,
               securityToken: zeroAddress,
               approvedAttestors: [...form.approvedAttestors],
               commitWindowEnd: form.commitWindowEnd,
@@ -94,7 +97,7 @@ export function useLaunchOffering(): {
         throw normalized;
       }
     },
-    [writeContractAsync, publicClient, connectedAddress],
+    [writeContractAsync, publicClient, connectedAddress, issuanceFactoryAddress, paymentTokenAddress],
   );
 
   return { launch, status, error };

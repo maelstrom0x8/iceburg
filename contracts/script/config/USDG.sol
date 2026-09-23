@@ -1,0 +1,9 @@
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity 0.8.26;
+
+library USDG {
+    address constant ARBITRUM_SEPOLIA = 0xFFC95faa3d63Cde504a05B567C600B78C0b41892;
+    address constant ARBITRUM_ONE = 0x004B506865409877C9fA29bfb1ebA929984B9bbC;
+    address constant ROBINHOOD_TESTNET = 0x7E955252E15c84f5768B83c41a71F9eba181802F;
+    address constant ROBINHOOD_MAINNET = 0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168;
+}

@@ -1,16 +1,18 @@
 import { useReadContract } from "wagmi";
-import { DemoUSDAbi, DemoUSDAddress } from "../contracts";
+import { DemoUSDAbi } from "../contracts";
+import { usePaymentTokenAddress } from "../config/paymentToken";
 
 export function usePaymentTokenDecimals(): {
   decimals: number | undefined;
   isLoading: boolean;
   error: Error | null;
 } {
+  const paymentTokenAddress = usePaymentTokenAddress();
   const { data, isLoading, error } = useReadContract({
-    address: DemoUSDAddress,
+    address: paymentTokenAddress,
     abi: DemoUSDAbi,
     functionName: "decimals",
-    query: { enabled: DemoUSDAddress !== undefined },
+    query: { enabled: paymentTokenAddress !== undefined },
   });
 
   return { decimals: data, isLoading, error: error as Error | null };

@@ -85,6 +85,10 @@ stated rules and get paid for catching a violation. Most "fair allocation"
 promises today are just that — promises. Here, breaking your own rules
 isn't a PR risk, it's a mechanism that costs you money.
 
+## Settling in USDG
+
+Iceburg settles offerings in [USDG](https://docs.paxos.com/guides/stablecoin/usdg) (Global Dollar), Paxos' regulated, reserve-backed stablecoin — the native asset on Robinhood Chain, one of this project's named deployment targets. USDG, like other regulated stablecoins, can freeze or blocklist an individual address; `Issuance`'s settlement path (`settle()`, `cancelUnresolved()`, `closeRevealWindow()`) is built around that reality from the ground up — payouts accumulate in a claimable ledger and each party pulls their own, so one frozen address can never block anyone else's settlement or the auction's own progress. `contracts/test/fork/IssuanceUSDGFork.t.sol` runs Iceburg's full commit → reveal → clear → settle → claim lifecycle against the real, live USDG contract on Arbitrum Sepolia (`0xFFC95faa3d63Cde504a05B567C600B78C0b41892`), not a mock.
+
 ## How it works, at a glance
 
 ```mermaid
@@ -130,6 +134,17 @@ Early build for the Arbitrum Open House Singapore Online Buildathon
 
 After changing a contract: `forge build` (or just re-run `make deploy-local SCRIPT=...` / `make bootstrap-local`) to pick up ABI changes in the frontend.
 
+### Testnet / Robinhood Chain
+
+`contracts/`'s deploy scripts and `iceburg-ui`'s wagmi config both support Arbitrum Sepolia and Robinhood Chain (testnet id `46630`, mainnet id `4663`) alongside local anvil — no demo payment token deploy needed on either, since real USDG already exists there:
+
+```
+make bootstrap-arbitrum-sepolia    # needs SEPOLIA_RPC_URL + a funded PRIVATE_KEY in .env
+make bootstrap-robinhood-testnet   # needs ROBINHOOD_TESTNET_RPC_URL + a funded PRIVATE_KEY in .env
+```
+
+Both route through a generic `make deploy SCRIPT=... RPC_URL=...` target — the same one `deploy-local` uses, just pointed elsewhere. `scripts/sync-abi.mjs` picks up every network a contract has actually been deployed to automatically (it scans every chain-id subfolder under `contracts/broadcast/`), so the frontend's `IssuanceFactoryAddressByChain`/`AttestorRegistryAddressByChain` maps grow as you deploy to more networks, with no separate config step.
+
 ### Adding a new contract
 
 1. Write it in `contracts/src/`, add a deploy script in `contracts/script/`.
@@ -138,7 +153,7 @@ After changing a contract: `forge build` (or just re-run `make deploy-local SCRI
 
 ### Environment
 
-- `contracts/.env` (copy from `.env.example`) — local anvil private key by default; fill in `SEPOLIA_RPC_URL` / `ETHERSCAN_API_KEY` only for testnet deploys.
+- `contracts/.env` (copy from `.env.example`) — local anvil private key by default; fill in `SEPOLIA_RPC_URL` (an Arbitrum Sepolia RPC endpoint) / `ETHERSCAN_API_KEY` for testnet deploys, or `ROBINHOOD_TESTNET_RPC_URL` for Robinhood Chain testnet. Setting `SEPOLIA_RPC_URL` also enables `test/fork/IssuanceUSDGFork.t.sol`, which is skipped otherwise.
 - `iceburg-ui/.env.local` (copy from `.env.example`) — `VITE_WALLETCONNECT_PROJECT_ID` from https://cloud.reown.com (needed for WalletConnect-based wallets; injected wallets like MetaMask work without it).
 
 ## License

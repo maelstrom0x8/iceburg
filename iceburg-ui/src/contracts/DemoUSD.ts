@@ -335,4 +335,6 @@ export const DemoUSDAbi = [
   }
 ] as const;
 
-export const DemoUSDAddress = "0x5fbdb2315678afecb367f032d93f642f64180aa3" as `0x${string}` | undefined;
+export const DemoUSDAddressByChain: Record<number, `0x${string}`> = {
+  "31337": "0x5fbdb2315678afecb367f032d93f642f64180aa3"
+};

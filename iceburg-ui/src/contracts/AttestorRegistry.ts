@@ -200,4 +200,6 @@ export const AttestorRegistryAbi = [
   }
 ] as const;
 
-export const AttestorRegistryAddress = "0xb7f8bc63bbcad18155201308c8f3540b07f84f5e" as `0x${string}` | undefined;
+export const AttestorRegistryAddressByChain: Record<number, `0x${string}`> = {
+  "31337": "0xb7f8bc63bbcad18155201308c8f3540b07f84f5e"
+};

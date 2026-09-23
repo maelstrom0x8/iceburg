@@ -1,5 +1,6 @@
-export { DemoUSDAbi, DemoUSDAddress } from "./DemoUSD";
-export { AttestorRegistryAbi, AttestorRegistryAddress } from "./AttestorRegistry";
-export { IssuanceFactoryAbi, IssuanceFactoryAddress } from "./IssuanceFactory";
-export { SecurityTokenAbi, SecurityTokenAddress } from "./SecurityToken";
-export { IssuanceAbi, IssuanceAddress } from "./Issuance";
+export { DemoUSDAbi, DemoUSDAddressByChain } from "./DemoUSD";
+export { AttestorRegistryAbi, AttestorRegistryAddressByChain } from "./AttestorRegistry";
+export { IssuanceFactoryAbi, IssuanceFactoryAddressByChain } from "./IssuanceFactory";
+export { SecurityTokenAbi, SecurityTokenAddressByChain } from "./SecurityToken";
+export { IssuanceAbi, IssuanceAddressByChain } from "./Issuance";
+export { useContractAddress } from "./useContractAddress";

@@ -485,4 +485,4 @@ export const SecurityTokenAbi = [
   }
 ] as const;
 
-export const SecurityTokenAddress = undefined as `0x${string}` | undefined;
+export const SecurityTokenAddressByChain: Record<number, `0x${string}`> = {};

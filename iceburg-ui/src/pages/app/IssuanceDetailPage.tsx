@@ -6,6 +6,9 @@ import { IssuanceDetail } from "../../features/issuance-detail/components/Issuan
 import { AppSubHeader } from "../../components/layout/AppSubHeader";
 import { IssuanceAbi, SecurityTokenAbi } from "../../contracts";
 import { StateBadge } from "../../components/ui/StateBadge";
+import { usePaymentTokenDecimals } from "../../hooks/usePaymentTokenDecimals";
+import { usePaymentTokenSymbol } from "../../hooks/usePaymentTokenSymbol";
+import { formatPrice } from "../../lib/format";
 
 function DetailPageHeader({ address }: { address: `0x${string}` }) {
   const { data: state } = useReadContract({
@@ -46,11 +49,14 @@ function DetailPageHeader({ address }: { address: `0x${string}` }) {
     query: { enabled: Boolean(securityTokenAddress) },
   });
 
+  const { decimals } = usePaymentTokenDecimals();
+  const { symbol } = usePaymentTokenSymbol();
+
   const stateNum = state !== undefined ? Number(state) : undefined;
   const reservePrice = params ? params[1] : undefined;
 
-  const reserveStr = reservePrice !== undefined
-    ? `$${(Number(reservePrice) / 1e18).toFixed(2)}`
+  const reserveStr = reservePrice !== undefined && decimals !== undefined
+    ? `${formatPrice(reservePrice, decimals)}${symbol ? ` ${symbol}` : ""}`
     : "—";
 
   return (

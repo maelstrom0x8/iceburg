@@ -137,4 +137,6 @@ export const IssuanceFactoryAbi = [
   }
 ] as const;
 
-export const IssuanceFactoryAddress = "0x0dcd1bf9a1b36ce34237eeafef220932846bcd82" as `0x${string}` | undefined;
+export const IssuanceFactoryAddressByChain: Record<number, `0x${string}`> = {
+  "31337": "0x0dcd1bf9a1b36ce34237eeafef220932846bcd82"
+};
