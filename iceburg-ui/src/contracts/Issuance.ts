@@ -1298,6 +1298,22 @@ export const IssuanceAbi = [
   },
   {
     "type": "error",
+    "name": "SamePriceTierSplit",
+    "inputs": [
+      {
+        "name": "bidIndexA",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "bidIndexB",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
     "name": "StringTooLong",
     "inputs": [
       {

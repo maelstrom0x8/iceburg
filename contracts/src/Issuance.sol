@@ -91,6 +91,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
     error ChallengeWindowStillOpen();
     error AlreadyFinalized();
     error NothingToClaim();
+    error SamePriceTierSplit(uint256 bidIndexA, uint256 bidIndexB);
 
     event IssuanceCreated(
         address indexed issuer,
@@ -374,6 +375,8 @@ contract Issuance is ReentrancyGuard, EIP712 {
         if (totalAllocated > _params.supply) revert SupplyExceeded(totalAllocated, _params.supply);
         if (distinctWinners < _params.minHolders) revert DiversityNotMet(distinctWinners, _params.minHolders);
 
+        _verifySamePriceTierConsistency(clearingPrice, allocations, bidCap, n);
+
         if (rationedQty > 0) {
             for (uint256 i = 0; i < n; i++) {
                 Bid storage b = _bids[i];
@@ -386,6 +389,26 @@ contract Issuance is ReentrancyGuard, EIP712 {
                         revert ProrationInconsistent(i, allocation, expectedFloor);
                     }
                 }
+            }
+        }
+    }
+
+    function _verifySamePriceTierConsistency(
+        uint256 clearingPrice,
+        uint256[] calldata allocations,
+        uint256 bidCap,
+        uint256 n
+    ) private view {
+        for (uint256 i = 0; i < n; i++) {
+            Bid storage bi = _bids[i];
+            if (bi.price < clearingPrice) continue;
+            bool iSatisfied = allocations[i] == (bi.qty < bidCap ? bi.qty : bidCap);
+
+            for (uint256 j = i + 1; j < n; j++) {
+                Bid storage bj = _bids[j];
+                if (bj.price != bi.price) continue;
+                bool jSatisfied = allocations[j] == (bj.qty < bidCap ? bj.qty : bidCap);
+                if (iSatisfied != jSatisfied) revert SamePriceTierSplit(i, j);
             }
         }
     }

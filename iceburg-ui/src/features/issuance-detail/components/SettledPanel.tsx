@@ -12,8 +12,86 @@ const INSET = {
   border: "1px solid var(--color-app-border)",
 };
 
+function ClaimSection({ issuanceAddress }: { issuanceAddress: `0x${string}` }) {
+  const { address: walletAddress } = useAccount();
+  const { writeContractAsync } = useWriteContract();
+  const publicClient = usePublicClient();
+  const { decimals: paymentDecimals } = usePaymentTokenDecimals();
+  const { symbol: paymentSymbol } = usePaymentTokenSymbol();
+
+  const [claiming, setClaiming] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const {
+    data: claimableAmount,
+    refetch: refetchClaimable,
+  } = useReadContract({
+    address: issuanceAddress,
+    abi: IssuanceAbi,
+    functionName: "claimable",
+    args: walletAddress ? [walletAddress] : undefined,
+    query: { enabled: Boolean(walletAddress) },
+  });
+
+  const handleClaim = useCallback(async () => {
+    if (!publicClient) return;
+    setClaiming(true);
+    setErrorMsg(null);
+    try {
+      const hash = await writeContractAsync({
+        address: issuanceAddress,
+        abi: IssuanceAbi,
+        functionName: "claim",
+      });
+      await publicClient.waitForTransactionReceipt({ hash });
+      await refetchClaimable();
+    } catch (err) {
+      setErrorMsg(getRevertReason(err));
+    } finally {
+      setClaiming(false);
+    }
+  }, [issuanceAddress, publicClient, refetchClaimable, writeContractAsync]);
+
+  if (!walletAddress) {
+    return (
+      <p className="text-sm" style={{ color: "var(--color-app-muted)" }}>
+        Connect your wallet to check what you're owed.
+      </p>
+    );
+  }
+
+  const amount = (claimableAmount as bigint | undefined) ?? 0n;
+
+  return (
+    <div className="space-y-3">
+      {errorMsg && (
+        <div className="rounded-lg p-3 text-sm border border-red-500/30 bg-red-500/10 text-red-500">
+          {errorMsg}
+        </div>
+      )}
+
+      {amount > 0n ? (
+        <button
+          onClick={handleClaim}
+          disabled={claiming}
+          className="px-4 py-2.5 rounded-lg text-sm font-medium border border-emerald-500/30 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-colors disabled:opacity-50"
+        >
+          {claiming
+            ? "Claiming…"
+            : `Claim ${paymentDecimals !== undefined ? `${formatPrice(amount, paymentDecimals)} ${paymentSymbol ?? ""}` : "your funds"}`}
+        </button>
+      ) : (
+        <p className="text-sm" style={{ color: "var(--color-app-muted)" }}>
+          Nothing left to claim for this wallet — either you weren't owed
+          anything from this offering, or you've already claimed it.
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function SettledPanel() {
-  const { address, state, params, standingProposal, refetch } = useIssuanceContext();
+  const { address, state, finalized, params, standingProposal, refetch } = useIssuanceContext();
   const { address: walletAddress } = useAccount();
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
@@ -72,6 +150,25 @@ export function SettledPanel() {
     }
   }, [address, publicClient, refetch, writeContractAsync]);
 
+  const handleSettle = useCallback(async () => {
+    if (!publicClient) return;
+    setActing(true);
+    setErrorMsg(null);
+    try {
+      const hash = await writeContractAsync({
+        address,
+        abi: IssuanceAbi,
+        functionName: "settle",
+      });
+      await publicClient.waitForTransactionReceipt({ hash });
+      await refetch();
+    } catch (err) {
+      setErrorMsg(getRevertReason(err));
+    } finally {
+      setActing(false);
+    }
+  }, [address, publicClient, refetch, writeContractAsync]);
+
   if (isCancelled) {
     return (
       <div className="rounded-xl border border-red-500/20 bg-red-500/[0.04] p-6 space-y-4">
@@ -84,7 +181,10 @@ export function SettledPanel() {
           </h3>
           <p className="text-sm" style={{ color: "var(--color-app-muted)" }}>
             This offering was cancelled because no valid clearing proposal could be resolved or
-            an unresolved claim was accepted. All bidder escrow and bonds are available for claim.
+            an unresolved claim was accepted.
+            {finalized
+              ? " All bidder escrow and bonds are available for claim below."
+              : " Once finalized, bidder escrow and bonds will be available to claim below."}
           </p>
         </div>
 
@@ -94,7 +194,7 @@ export function SettledPanel() {
           </div>
         )}
 
-        {isIssuer && (
+        {!finalized && isIssuer && (
           <button
             onClick={handleCancelUnresolved}
             disabled={acting}
@@ -103,6 +203,8 @@ export function SettledPanel() {
             {acting ? "Cancelling…" : "Cancel Unresolved Offering"}
           </button>
         )}
+
+        {finalized && <ClaimSection issuanceAddress={address} />}
       </div>
     );
   }
@@ -117,10 +219,27 @@ export function SettledPanel() {
           Offering Finalized & Settled
         </h3>
         <p className="text-sm" style={{ color: "var(--color-app-muted)" }}>
-          The auction outcome has been on-chain executed. Token allocations have been minted to
-          winning bidders and refunds processed.
+          {finalized
+            ? "The auction has settled on-chain. Winners' tokens have been minted; anyone owed a refund, proceeds, or bond back can claim it below."
+            : "The auction outcome is decided. Settlement still needs to be finalized on-chain before anyone can claim their tokens, refund, or bond."}
         </p>
       </div>
+
+      {errorMsg && (
+        <div className="rounded-lg p-3 text-sm border border-red-500/30 bg-red-500/10 text-red-500">
+          {errorMsg}
+        </div>
+      )}
+
+      {!finalized && (
+        <button
+          onClick={handleSettle}
+          disabled={acting}
+          className="px-4 py-2.5 rounded-lg text-sm font-medium border border-emerald-500/30 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-colors disabled:opacity-50"
+        >
+          {acting ? "Finalizing…" : "Finalize Settlement"}
+        </button>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 rounded-lg p-4 text-sm" style={INSET}>
         <div>
@@ -146,6 +265,8 @@ export function SettledPanel() {
           </div>
         </div>
       </div>
+
+      {finalized && <ClaimSection issuanceAddress={address} />}
     </div>
   );
 }

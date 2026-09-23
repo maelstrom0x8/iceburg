@@ -117,6 +117,32 @@ contract IssuanceVerifierTest is Test {
         assertEq(distinctWinners, 3);
     }
 
+    function test_clampedOversubscriptionWithTiedPriceTier_bothRationedTogether_accepted() public {
+        _deploy(100, 1, 10_000, 3);
+        _commit(1, 80, 20);
+        _commit(2, 80, 15);
+        _commit(3, 10, 5);
+        _commit(4, 10, 3);
+        _commit(5, 10, 5);
+        _openReveal();
+        _reveal(1, 80, 20);
+        _reveal(2, 80, 15);
+        _reveal(3, 10, 5);
+        _reveal(4, 10, 3);
+        _reveal(5, 10, 5);
+
+        uint256[] memory allocations = new uint256[](5);
+        allocations[0] = 45;
+        allocations[1] = 45;
+        allocations[2] = 5;
+        allocations[3] = 0;
+        allocations[4] = 5;
+
+        (uint256 totalAllocated, uint256 distinctWinners) = issuance.verifyClearing(5, allocations);
+        assertEq(totalAllocated, 100);
+        assertEq(distinctWinners, 4);
+    }
+
     function test_diversityRoundingShortfallFixture_rejectedByV5() public {
         _deploy(11, 1, 10_000, 3);
         _commit(1, 10, 10);

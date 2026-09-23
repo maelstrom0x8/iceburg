@@ -12,7 +12,8 @@ import { getRevertReason } from "../../../lib/revertReasons";
 
 // ── Local storage key for stored bids ────────────────────────────────────────
 
-const BID_KEY = (addr: string) => `iceburg:bid:${addr.toLowerCase()}`;
+const BID_KEY = (issuanceAddr: string, walletAddr: string) =>
+  `iceburg:bid:${issuanceAddr.toLowerCase()}:${walletAddr.toLowerCase()}`;
 
 interface StoredBid {
   qty: string;
@@ -21,9 +22,9 @@ interface StoredBid {
   timestamp: number;
 }
 
-function storeBid(issuanceAddress: string, bid: StoredBid): void {
+function storeBid(issuanceAddress: string, walletAddress: string, bid: StoredBid): void {
   try {
-    localStorage.setItem(BID_KEY(issuanceAddress), JSON.stringify(bid));
+    localStorage.setItem(BID_KEY(issuanceAddress, walletAddress), JSON.stringify(bid));
   } catch {
     console.warn("Could not persist bid to localStorage.");
   }
@@ -140,7 +141,7 @@ export function CommitPanel() {
         const salt = generateSalt();
         const commitment = computeCommitment(qtyBig, priceBig, salt);
 
-        storeBid(issuanceAddress, {
+        storeBid(issuanceAddress, walletAddress, {
           qty: qtyBig.toString(),
           price: priceBig.toString(),
           salt,

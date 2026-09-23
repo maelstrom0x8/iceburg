@@ -7,7 +7,8 @@ import { getRevertReason } from "../../../lib/revertReasons";
 
 // ── Local storage helpers ─────────────────────────────────────────────────────
 
-const BID_KEY = (addr: string) => `iceburg:bid:${addr.toLowerCase()}`;
+const BID_KEY = (issuanceAddr: string, walletAddr: string) =>
+  `iceburg:bid:${issuanceAddr.toLowerCase()}:${walletAddr.toLowerCase()}`;
 
 interface StoredBid {
   qty: string;
@@ -16,9 +17,9 @@ interface StoredBid {
   timestamp: number;
 }
 
-function loadStoredBid(issuanceAddress: string): StoredBid | null {
+function loadStoredBid(issuanceAddress: string, walletAddress: string): StoredBid | null {
   try {
-    const raw = localStorage.getItem(BID_KEY(issuanceAddress));
+    const raw = localStorage.getItem(BID_KEY(issuanceAddress, walletAddress));
     if (!raw) return null;
     return JSON.parse(raw) as StoredBid;
   } catch {
@@ -52,7 +53,7 @@ export function RevealPanel() {
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
 
-  const stored = loadStoredBid(issuanceAddress);
+  const stored = walletAddress ? loadStoredBid(issuanceAddress, walletAddress) : null;
 
   const [qty, setQty] = useState(stored?.qty ?? "");
   const [price, setPrice] = useState(stored?.price ?? "");

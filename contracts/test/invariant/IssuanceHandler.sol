@@ -173,19 +173,7 @@ contract IssuanceHandler is Test {
             }
             if (distinct < 2) continue;
 
-            uint256[] memory candidateAllocations = new uint256[](n);
-            uint256 bidCap = issuance.cap();
-            uint256 supply = 300;
-            uint256 remaining = supply;
-            for (uint256 i = 0; i < n; i++) {
-                if (prices[i] >= p) {
-                    Issuance.Bid memory b = issuance.bidAt(i);
-                    uint256 want = b.qty < bidCap ? b.qty : bidCap;
-                    uint256 give = want < remaining ? want : remaining;
-                    candidateAllocations[i] = give;
-                    remaining -= give;
-                }
-            }
+            uint256[] memory candidateAllocations = _fillTierAware(p, n);
 
             (bool ok,) = address(issuance).staticcall(
                 abi.encodeWithSelector(Issuance.verifyClearing.selector, p, candidateAllocations)
@@ -195,6 +183,62 @@ contract IssuanceHandler is Test {
             }
         }
         return (false, 0, allocations);
+    }
+
+    function _fillTierAware(uint256 p, uint256 n) internal view returns (uint256[] memory allocations) {
+        allocations = new uint256[](n);
+        uint256 bidCap = issuance.cap();
+        uint256 remaining = 300;
+        bool[] memory done = new bool[](n);
+
+        while (true) {
+            uint256 tierPrice;
+            bool found;
+            for (uint256 i = 0; i < n; i++) {
+                Issuance.Bid memory bi = issuance.bidAt(i);
+                if (done[i] || bi.price < p) continue;
+                if (!found || bi.price > tierPrice) {
+                    tierPrice = bi.price;
+                    found = true;
+                }
+            }
+            if (!found) break;
+
+            uint256 tierWant;
+            for (uint256 i = 0; i < n; i++) {
+                Issuance.Bid memory bi = issuance.bidAt(i);
+                if (done[i] || bi.price != tierPrice) continue;
+                tierWant += bi.qty < bidCap ? bi.qty : bidCap;
+            }
+
+            if (tierWant <= remaining) {
+                for (uint256 i = 0; i < n; i++) {
+                    Issuance.Bid memory bi = issuance.bidAt(i);
+                    if (done[i] || bi.price != tierPrice) continue;
+                    allocations[i] = bi.qty < bidCap ? bi.qty : bidCap;
+                    done[i] = true;
+                }
+                remaining -= tierWant;
+            } else {
+                uint256 distributed;
+                for (uint256 i = 0; i < n; i++) {
+                    Issuance.Bid memory bi = issuance.bidAt(i);
+                    if (done[i] || bi.price != tierPrice) continue;
+                    uint256 want = bi.qty < bidCap ? bi.qty : bidCap;
+                    uint256 share = (remaining * want) / tierWant;
+                    allocations[i] = share;
+                    distributed += share;
+                    done[i] = true;
+                }
+                uint256 leftover = remaining - distributed;
+                for (uint256 i = 0; i < n && leftover > 0; i++) {
+                    if (issuance.bidAt(i).price != tierPrice) continue;
+                    allocations[i] += 1;
+                    leftover--;
+                }
+                break;
+            }
+        }
     }
 
     function proposeOrChallenge(uint256 seed) external {
