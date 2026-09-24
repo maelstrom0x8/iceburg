@@ -1,31 +1,18 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { RainbowKitProvider, lightTheme } from "@rainbow-me/rainbowkit";
-import "@rainbow-me/rainbowkit/styles.css";
-import { WagmiProvider } from "wagmi";
-import { wagmiConfig } from "./config/wagmi";
-import { AuthProvider } from "./contexts/AuthContext";
 import "./index.css";
-import App from "./App.tsx";
+import MarketingApp from "./MarketingApp.tsx";
 
-const queryClient = new QueryClient();
-
-const rainbowKitTheme = lightTheme({ accentColor: "#020617", accentColorForeground: "#ffffff", borderRadius: "large" });
-
+// No WagmiProvider/RainbowKitProvider/QueryClientProvider/AuthProvider here
+// on purpose — the marketing site never reads wallet or chain state, and
+// this is the entire reason it's a separate build from the app (see
+// vite.marketing.config.ts): none of that ~600KB+ of wallet-connector code
+// should ship to a visitor who's just reading the landing page.
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={rainbowKitTheme}>
-          <AuthProvider>
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
-          </AuthProvider>
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <BrowserRouter>
+      <MarketingApp />
+    </BrowserRouter>
   </StrictMode>,
 );

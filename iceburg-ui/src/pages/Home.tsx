@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
 import { MotionConfig } from "motion/react";
+import { APP_URL } from "../config/urls";
 import { FramedDeviceMock } from "../features/marketing/components/FramedDeviceMock";
 import { EmptyLaunchFormMock } from "../features/marketing/components/EmptyLaunchFormMock";
 import { ClearingOutcomePanel } from "../features/marketing/components/ClearingOutcomePanel";
@@ -64,16 +64,16 @@ export function Home() {
               yourself.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Link to="/app/issue" className={PRIMARY_BUTTON}>
+              <a href={`${APP_URL}/issue`} className={PRIMARY_BUTTON}>
                 Launch an offering
-              </Link>
-              <Link
-                to="/app/issuances"
+              </a>
+              <a
+                href={`${APP_URL}/issuances`}
                 className={SECONDARY_BUTTON}
                 style={{ color: "var(--color-app-text)", border: "1px solid var(--color-app-border-2)" }}
               >
                 View active offerings
-              </Link>
+              </a>
             </div>
           </div>
 
@@ -108,9 +108,9 @@ export function Home() {
                 The bids compute the result. Anyone can check it.
               </h2>
               <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-                <Link to="/app/issue" className={PRIMARY_BUTTON}>
+                <a href={`${APP_URL}/issue`} className={PRIMARY_BUTTON}>
                   Launch an offering
-                </Link>
+                </a>
                 <a href="#faq" className={SECONDARY_BUTTON_ON_DARK}>
                   See how
                 </a>
@@ -153,16 +153,16 @@ export function Home() {
               Ready to run an offering on published rules?
             </h2>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-              <Link to="/app/issue" className={PRIMARY_BUTTON}>
+              <a href={`${APP_URL}/issue`} className={PRIMARY_BUTTON}>
                 Get started
-              </Link>
-              <Link
-                to="/app/issuances"
+              </a>
+              <a
+                href={`${APP_URL}/issuances`}
                 className={SECONDARY_BUTTON}
                 style={{ color: "var(--color-app-text)", border: "1px solid var(--color-app-border-2)" }}
               >
                 Browse offerings
-              </Link>
+              </a>
             </div>
           </Reveal>
         </section>
@@ -238,16 +238,16 @@ export function Home() {
                 Step through an active offering, or set your own terms and open one.
               </p>
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-                <Link to="/app/issuances" className={PRIMARY_BUTTON}>
+                <a href={`${APP_URL}/issuances`} className={PRIMARY_BUTTON}>
                   View active offerings
-                </Link>
-                <Link
-                  to="/app/issue"
+                </a>
+                <a
+                  href={`${APP_URL}/issue`}
                   className={SECONDARY_BUTTON}
                   style={{ color: "var(--color-app-text)", border: "1px solid var(--color-app-border-2)" }}
                 >
                   Launch an offering
-                </Link>
+                </a>
               </div>
             </div>
           </Reveal>

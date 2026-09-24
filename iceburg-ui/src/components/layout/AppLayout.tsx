@@ -2,7 +2,8 @@ import { Outlet } from "react-router-dom";
 import { AppTopBar } from "./AppTopBar";
 
 /**
- * Root layout for all /app/* routes.
+ * Root layout for the app build — its own deployment (app/index.html),
+ * mounted at "/", not "/app" (see src/App.tsx).
  * Uses system color scheme (light/dark) via CSS variables.
  */
 export function AppLayout() {

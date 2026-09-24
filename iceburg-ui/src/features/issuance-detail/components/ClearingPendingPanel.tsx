@@ -104,7 +104,7 @@ export function ClearingPendingPanel() {
         )}
 
         <Link
-          to={`/app/clearing?issuance=${address}`}
+          to={`/clearing?issuance=${address}`}
           className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-colors bg-accent hover:bg-accent-hover"
         >
           Open Clearing Workbench

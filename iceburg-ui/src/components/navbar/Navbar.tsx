@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { ResourcesMenu } from "./ResourcesMenu";
+import { APP_URL } from "../../config/urls";
 
 const FOCUS_RING = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent";
 
@@ -50,9 +51,9 @@ function AboutLink({ className }: { className?: string }) {
 
 function UseIcebergButton({ layoutClassName }: { layoutClassName: string }) {
   return (
-    <Link to="/app" className={`${layoutClassName} ${USE_ICEBURG_BASE_CLASSES}`}>
+    <a href={APP_URL} className={`${layoutClassName} ${USE_ICEBURG_BASE_CLASSES}`}>
       Use Iceburg
-    </Link>
+    </a>
   );
 }
 

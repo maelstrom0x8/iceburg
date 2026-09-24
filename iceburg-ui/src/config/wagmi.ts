@@ -37,9 +37,21 @@ if (!import.meta.env.VITE_WALLETCONNECT_PROJECT_ID) {
   );
 }
 
+// `foundry` (local anvil, chain id 31337, RPC at http://127.0.0.1:8545) only
+// belongs in this list for local dev — it's the first entry, so it's also
+// wagmi's default/fallback chain before a wallet connects. Included in a
+// deployed build, that default makes every unauthenticated read (e.g. the
+// offerings list) try to reach localhost from the visitor's own browser and
+// fail outright. `import.meta.env.DEV` is true only under `vite`/`vite dev`,
+// false for every `vite build` (including Preview/Production deploys), so
+// this keeps the convenient local default without shipping it.
+const chains = import.meta.env.DEV
+  ? ([foundry, arbitrumSepolia, arbitrum, robinhoodChainTestnet, robinhoodChain] as const)
+  : ([arbitrumSepolia, arbitrum, robinhoodChainTestnet, robinhoodChain] as const);
+
 export const wagmiConfig = getDefaultConfig({
   appName: "Iceburg",
   projectId: walletConnectProjectId,
-  chains: [foundry, arbitrumSepolia, arbitrum, robinhoodChainTestnet, robinhoodChain],
+  chains,
   ssr: false,
 });

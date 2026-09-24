@@ -6,6 +6,7 @@ import { CountdownTimer } from "../../../components/ui/CountdownTimer";
 import { formatAmount, formatPrice } from "../../../lib/format";
 import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
 import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
+import { getRevertReason } from "../../../lib/revertReasons";
 import { useIssuances, type IssuanceSummary } from "../hooks/useIssuances";
 
 const TH = "px-4 py-3 text-left text-xs font-medium uppercase tracking-wider";
@@ -69,7 +70,7 @@ function IssuanceRow({
     >
       <td className={TD}>
         <Link
-          to={`/app/issuances/${issuanceAddress}`}
+          to={`/issuances/${issuanceAddress}`}
           className="absolute inset-0 z-10"
           aria-label={`View ${tokenName} offering`}
         />
@@ -140,7 +141,7 @@ export function IssuanceTable() {
         className="rounded-xl p-6 text-sm"
         style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171" }}
       >
-        Failed to load offerings: {error.message}
+        Failed to load offerings: {getRevertReason(error)}
       </div>
     );
   }
@@ -153,7 +154,7 @@ export function IssuanceTable() {
           No sealed-bid auctions have been deployed on this network.
         </p>
         <Link
-          to="/app/issue"
+          to="/issue"
           className="inline-flex items-center gap-2 mt-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
           style={{ background: "var(--color-accent)" }}
         >

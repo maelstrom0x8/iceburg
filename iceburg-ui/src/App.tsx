@@ -1,65 +1,24 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { MarketingLayout } from "./components/layout/MarketingLayout";
 import { AppLayout } from "./components/layout/AppLayout";
-import { Home } from "./pages/Home";
-import { StatusPage } from "./pages/StatusPage";
 import { IssuancesPage } from "./pages/app/IssuancesPage";
 import { IssuanceDetailPage } from "./pages/app/IssuanceDetailPage";
 import { ActivityPage } from "./pages/app/ActivityPage";
 import { IssuePage } from "./pages/app/IssuePage";
 import { ClearingPage } from "./pages/app/ClearingPage";
 
+/**
+ * The application — its own build (`app/index.html` via `main.app.tsx`),
+ * deployed as its own Vercel project on the `app.` subdomain. Mounted at
+ * "/" here (not "/app") since it owns its own origin now; the marketing
+ * site links here with an absolute cross-origin URL (src/config/urls.ts),
+ * never a React Router <Link>.
+ */
 function App() {
   return (
     <Routes>
-      {/* ── Marketing shell ── */}
-      <Route element={<MarketingLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route
-          path="/about"
-          element={
-            <StatusPage
-              eyebrow="About"
-              title="About Iceburg"
-              description="More about our team and mission is coming soon."
-            />
-          }
-        />
-        <Route
-          path="/faq"
-          element={
-            <StatusPage
-              eyebrow="FAQs"
-              title="Frequently asked questions"
-              description="Answers to common questions are on the way."
-            />
-          }
-        />
-        <Route
-          path="/help"
-          element={
-            <StatusPage
-              eyebrow="Help"
-              title="Help and support"
-              description="Our support center is under construction."
-            />
-          }
-        />
-        <Route
-          path="*"
-          element={
-            <StatusPage
-              eyebrow="404"
-              title="Page not found"
-              description="The page you're looking for doesn't exist or has moved."
-            />
-          }
-        />
-      </Route>
-
-      <Route path="/app" element={<AppLayout />}>
+      <Route path="/" element={<AppLayout />}>
         {/* Default to issuances tab */}
-        <Route index element={<Navigate to="/app/issuances" replace />} />
+        <Route index element={<Navigate to="/issuances" replace />} />
         <Route path="issuances" element={<IssuancesPage />} />
         <Route path="issuances/:address" element={<IssuanceDetailPage />} />
         <Route path="activity" element={<ActivityPage />} />

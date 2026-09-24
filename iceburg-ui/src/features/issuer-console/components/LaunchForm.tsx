@@ -145,7 +145,7 @@ export function LaunchForm() {
           challengeWindowLength,
         });
 
-        navigate(`/app/issuances/${result.issuance}`);
+        navigate(`/issuances/${result.issuance}`);
       } catch (err) {
         setErrorMsg(getRevertReason(err));
       } finally {
