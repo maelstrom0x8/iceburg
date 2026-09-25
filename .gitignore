@@ -14,6 +14,7 @@ iceburg-ui/.env.local
 contracts/cache/
 contracts/out/
 contracts/broadcast/*/31337/
+contracts/broadcast/*/46630/
 contracts/broadcast/**/dry-run/
 contracts/.env
 

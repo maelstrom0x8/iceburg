@@ -17,7 +17,7 @@ test:
 deploy:
 	@test -n "$(SCRIPT)" || (echo "usage: make deploy SCRIPT=<file.s.sol>:<ContractName> RPC_URL=<url>" && exit 1)
 	@test -n "$(RPC_URL)" || (echo "usage: make deploy SCRIPT=<file.s.sol>:<ContractName> RPC_URL=<url> (or use deploy-local for anvil)" && exit 1)
-	forge script script/$(SCRIPT) \
+	@forge script script/$(SCRIPT) \
 		--rpc-url $(RPC_URL) \
 		--private-key $(PRIVATE_KEY) \
 		--broadcast
