@@ -297,6 +297,90 @@ contract IssuanceVerifierTest is Test {
         issuance.verifyClearing(10, allocations);
     }
 
+    // Regression for a liveness bug: two bidders tied on both price and qty,
+    // with only enough supply for one of them, previously had no allocation
+    // the verifier would accept — [1,0]/[0,1] were rejected by the old
+    // all-or-nothing same-price-tier rule (one "satisfied", one "rationed"),
+    // and the unresolved-claim path was also rejected because enough
+    // distinct bidders existed at/above reserve. CLEARING_PENDING had no
+    // valid outgoing transition. Fixed by scoping the same-price-tier rule
+    // to same-price-*and*-same-qty peers, who may differ by at most the
+    // floor/floor+1 remainder (here, exactly 1).
+    function test_verifyClearing_tiedPriceAndQtyInsufficientSupply_accepted() public {
+        _deploy(1, 1, 10_000, 1);
+        _commit(1, 1, 10);
+        _commit(2, 1, 10);
+        _openReveal();
+        _reveal(1, 1, 10);
+        _reveal(2, 1, 10);
+
+        uint256[] memory allocations = new uint256[](2);
+        allocations[0] = 1;
+        allocations[1] = 0;
+
+        (uint256 totalAllocated, uint256 distinctWinners) = issuance.verifyClearing(10, allocations);
+        assertEq(totalAllocated, 1);
+        assertEq(distinctWinners, 1);
+    }
+
+    function test_verifyClearing_tiedPriceAndQtyInsufficientSupply_reverseAllocation_accepted() public {
+        _deploy(1, 1, 10_000, 1);
+        _commit(1, 1, 10);
+        _commit(2, 1, 10);
+        _openReveal();
+        _reveal(1, 1, 10);
+        _reveal(2, 1, 10);
+
+        uint256[] memory allocations = new uint256[](2);
+        allocations[0] = 0;
+        allocations[1] = 1;
+
+        (uint256 totalAllocated,) = issuance.verifyClearing(10, allocations);
+        assertEq(totalAllocated, 1);
+    }
+
+    // Regression for the report's second reproduction case: cap-peeling
+    // combined with a shared clearing price. A hits the per-bidder cap
+    // (satisfied), B does not (rationed) — legitimate because they have
+    // different qty (and therefore different maxAllowed), not an instance of
+    // the same-price-tier exploit the fairness rule exists to block.
+    function test_verifyClearing_capPeelingWithSharedClearingPrice_accepted() public {
+        _deploy(80, 1, 6_250, 1); // cap = 6250bps * 80 / 10000 = 50
+        _commit(1, 100, 10);
+        _commit(2, 40, 10);
+        _openReveal();
+        _reveal(1, 100, 10);
+        _reveal(2, 40, 10);
+
+        uint256[] memory allocations = new uint256[](2);
+        allocations[0] = 50;
+        allocations[1] = 30;
+
+        (uint256 totalAllocated,) = issuance.verifyClearing(10, allocations);
+        assertEq(totalAllocated, 80);
+    }
+
+    // A same-price pair with *different* qty, where one legitimately hits
+    // the shared per-bidder cap while the other is still being rationed
+    // below its own (smaller) cap. Never tested by the original P3-11 fix
+    // (per iceburg.doc/audit.md's own admission) and rejected by the old
+    // all-or-nothing rule despite being legitimate.
+    function test_verifyClearing_samePriceDifferentQtyOneCappedOneRationed_accepted() public {
+        _deploy(80, 1, 6_250, 1); // cap = 50
+        _commit(1, 1000, 10);
+        _commit(2, 60, 10);
+        _openReveal();
+        _reveal(1, 1000, 10);
+        _reveal(2, 60, 10);
+
+        uint256[] memory allocations = new uint256[](2);
+        allocations[0] = 50; // capped, satisfied
+        allocations[1] = 30; // rationed
+
+        (uint256 totalAllocated,) = issuance.verifyClearing(10, allocations);
+        assertEq(totalAllocated, 80);
+    }
+
     function test_verifyClearing_revertsForV5_diversityNotMet() public {
         _deploy(100, 1, 10_000, 3);
         _commit(1, 100, 10);

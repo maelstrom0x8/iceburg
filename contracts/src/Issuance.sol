@@ -14,6 +14,11 @@ contract Issuance is ReentrancyGuard, EIP712 {
     uint256 public constant MAX_BIDS = 64;
     uint256 public constant MAX_ATTESTORS = 10;
     uint256 public constant BPS_DENOMINATOR = 10_000;
+    // Ceiling on how long repeated challenges can keep resetting the
+    // challenge window and delaying settlement, measured from the first
+    // clearing proposal. Bounds the otherwise-unbounded "finite but not
+    // fast" tournament-termination argument to a concrete wall-clock limit.
+    uint64 public constant MAX_CHALLENGE_HORIZON = 30 days;
 
     enum State {
         COMMIT_OPEN,
@@ -92,6 +97,8 @@ contract Issuance is ReentrancyGuard, EIP712 {
     error AlreadyFinalized();
     error NothingToClaim();
     error SamePriceTierSplit(uint256 bidIndexA, uint256 bidIndexB);
+    error IssuerCannotBid();
+    error ChallengeHorizonElapsed();
 
     event IssuanceCreated(
         address indexed issuer,
@@ -132,6 +139,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
     uint256 public immutable cap;
     State public state;
     bool public finalized;
+    uint64 public firstClearingProposedAt;
 
     IssuanceParams private _params;
     Bid[] private _bids;
@@ -153,6 +161,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
         if (params_.capBps == 0 || params_.capBps > BPS_DENOMINATOR) revert InvalidCapBps(params_.capBps);
         if (params_.minHolders == 0) revert ZeroAmount();
         if (params_.minHolders > params_.supply) revert MinHoldersExceedsSupply(params_.minHolders, params_.supply);
+        if (params_.minBond == 0) revert ZeroAmount();
         if (params_.paymentToken == address(0)) revert ZeroAddress();
         if (params_.securityToken == address(0)) revert ZeroAddress();
         if (params_.approvedAttestors.length == 0) revert NoApprovedAttestors();
@@ -237,6 +246,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
     }
 
     function commitBid(bytes32 commitment, uint256 bond) external nonReentrant {
+        if (msg.sender == issuer) revert IssuerCannotBid();
         if (block.timestamp >= _params.commitWindowEnd) revert CommitWindowElapsed();
         if (commitment == bytes32(0)) revert EmptyCommitment();
         if (bond < _params.minBond) revert BondTooLow(bond, _params.minBond);
@@ -375,7 +385,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
         if (totalAllocated > _params.supply) revert SupplyExceeded(totalAllocated, _params.supply);
         if (distinctWinners < _params.minHolders) revert DiversityNotMet(distinctWinners, _params.minHolders);
 
-        _verifySamePriceTierConsistency(clearingPrice, allocations, bidCap, n);
+        _verifySamePriceTierConsistency(clearingPrice, allocations, n);
 
         if (rationedQty > 0) {
             for (uint256 i = 0; i < n; i++) {
@@ -393,22 +403,33 @@ contract Issuance is ReentrancyGuard, EIP712 {
         }
     }
 
-    function _verifySamePriceTierConsistency(
-        uint256 clearingPrice,
-        uint256[] calldata allocations,
-        uint256 bidCap,
-        uint256 n
-    ) private view {
+    // Bidders sharing both price and qty are indistinguishable to the protocol
+    // (maxAllowed = min(qty, cap) is identical between them), so they may only
+    // ever be split by the +-1 remainder integer floor/floor+1 proration can
+    // produce — never by more, which would mean one was arbitrarily favored
+    // over an identical peer with no way for the challenge tournament to
+    // detect it (equal price * equal total allocation => equal revenue and
+    // volume regardless of how the total is distributed within the pair).
+    // Bidders at the same price but *different* qty are not required to match:
+    // differing qty legitimately justifies differing maxAllowed (e.g. one
+    // hitting the shared per-bidder cap while the other doesn't), which the
+    // rationedQty/rationedAllocated proration check above already enforces.
+    function _verifySamePriceTierConsistency(uint256 clearingPrice, uint256[] calldata allocations, uint256 n)
+        private
+        view
+    {
         for (uint256 i = 0; i < n; i++) {
             Bid storage bi = _bids[i];
             if (bi.price < clearingPrice) continue;
-            bool iSatisfied = allocations[i] == (bi.qty < bidCap ? bi.qty : bidCap);
 
             for (uint256 j = i + 1; j < n; j++) {
                 Bid storage bj = _bids[j];
-                if (bj.price != bi.price) continue;
-                bool jSatisfied = allocations[j] == (bj.qty < bidCap ? bj.qty : bidCap);
-                if (iSatisfied != jSatisfied) revert SamePriceTierSplit(i, j);
+                if (bj.price != bi.price || bj.qty != bi.qty) continue;
+
+                uint256 ai = allocations[i];
+                uint256 aj = allocations[j];
+                uint256 diff = ai > aj ? ai - aj : aj - ai;
+                if (diff > 1) revert SamePriceTierSplit(i, j);
             }
         }
     }
@@ -472,6 +493,8 @@ contract Issuance is ReentrancyGuard, EIP712 {
 
         (uint256 totalAllocated,) = verifyClearing(clearingPrice, allocations);
 
+        if (firstClearingProposedAt == 0) firstClearingProposedAt = uint64(block.timestamp);
+
         uint64 deadline = uint64(block.timestamp) + _params.challengeWindowLength;
         _setStandingProposal(clearingPrice, allocations, msg.sender, bond, deadline, false);
         state = State.CHALLENGE_OPEN;
@@ -490,6 +513,8 @@ contract Issuance is ReentrancyGuard, EIP712 {
             revert DiversityAchievable(distinctAtReserve, _params.minHolders);
         }
 
+        if (firstClearingProposedAt == 0) firstClearingProposedAt = uint64(block.timestamp);
+
         uint64 deadline = uint64(block.timestamp) + _params.challengeWindowLength;
         _setStandingProposal(0, new uint256[](0), msg.sender, bond, deadline, true);
         state = State.CHALLENGE_OPEN;
@@ -505,6 +530,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
     {
         if (state != State.CHALLENGE_OPEN) revert WrongState(State.CHALLENGE_OPEN, state);
         if (block.timestamp >= _standingProposal.challengeDeadline) revert ChallengeWindowElapsed();
+        if (block.timestamp >= firstClearingProposedAt + MAX_CHALLENGE_HORIZON) revert ChallengeHorizonElapsed();
         if (bond < _params.minBond) revert BondTooLow(bond, _params.minBond);
 
         (uint256 totalAllocated,) = verifyClearing(clearingPrice, allocations);

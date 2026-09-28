@@ -90,6 +90,13 @@ contract IssuanceConstructorTest is Test {
         new Issuance(p, issuer);
     }
 
+    function test_createIssuance_revertsForZeroMinBond() public {
+        Issuance.IssuanceParams memory p = _params();
+        p.minBond = 0;
+        vm.expectRevert(Issuance.ZeroAmount.selector);
+        new Issuance(p, issuer);
+    }
+
     function test_createIssuance_revertsForZeroMinHolders() public {
         Issuance.IssuanceParams memory p = _params();
         p.minHolders = 0;

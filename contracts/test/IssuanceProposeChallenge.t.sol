@@ -270,6 +270,27 @@ contract IssuanceProposeChallengeTest is Test {
         issuance.challengeClearing(8, _correctAllocations(), 10);
     }
 
+    // Regression for unbounded challenge-window extension (BL-05): even with
+    // a per-round deadline that's still fresh (refreshed by a long
+    // challengeWindowLength here, or in practice by a steady stream of
+    // marginally-improving challenges), the absolute horizon anchored to the
+    // *first* proposal must still cap how long settlement can be delayed.
+    function test_challengeClearing_revertsAfterAbsoluteHorizonEvenWithFreshPerRoundDeadline() public {
+        challengeWindowLength = 40 days;
+        _setUpCapPeelingScenario();
+        address firstProposer = _fundProposer(100, 10);
+        address challenger = _fundProposer(101, 10);
+
+        vm.prank(firstProposer);
+        issuance.proposeClearing(6, _correctAllocations(), 10);
+
+        vm.warp(block.timestamp + issuance.MAX_CHALLENGE_HORIZON() + 1);
+
+        vm.prank(challenger);
+        vm.expectRevert(Issuance.ChallengeHorizonElapsed.selector);
+        issuance.challengeClearing(7, _correctAllocations(), 10);
+    }
+
     function test_challengeClearing_revertsForBondTooLow() public {
         _setUpCapPeelingScenario();
         address firstProposer = _fundProposer(100, 10);

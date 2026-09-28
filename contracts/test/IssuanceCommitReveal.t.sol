@@ -71,6 +71,16 @@ contract IssuanceCommitRevealTest is Test {
         issuance.commitBid(_commitment(1, 1, bytes32(0), bidder), minBond);
     }
 
+    function test_commitBid_revertsForIssuer() public {
+        paymentToken.mint(issuer, 1_000_000e18);
+        vm.prank(issuer);
+        paymentToken.approve(address(issuance), type(uint256).max);
+
+        vm.prank(issuer);
+        vm.expectRevert(Issuance.IssuerCannotBid.selector);
+        issuance.commitBid(_commitment(100, 8e6, bytes32(uint256(1)), issuer), minBond);
+    }
+
     function test_commitBid_revertsForEmptyCommitment() public {
         vm.prank(bidder);
         vm.expectRevert(Issuance.EmptyCommitment.selector);

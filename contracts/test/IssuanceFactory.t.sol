@@ -24,6 +24,7 @@ contract IssuanceFactoryTest is Test {
         Issuance.IssuanceParams memory p = IssuanceParamsBuilder.defaults(address(paymentToken), address(0), attestor);
 
         vm.recordLogs();
+        vm.prank(issuer);
         (Issuance issuance, SecurityToken securityToken) =
             factory.createIssuance(p, issuer, "Series A Preferred", "SERA");
 
@@ -39,6 +40,7 @@ contract IssuanceFactoryTest is Test {
 
     function test_createIssuance_mintingWorksEndToEnd() public {
         Issuance.IssuanceParams memory p = IssuanceParamsBuilder.defaults(address(paymentToken), address(0), attestor);
+        vm.prank(issuer);
         (Issuance issuance, SecurityToken securityToken) =
             factory.createIssuance(p, issuer, "Series A Preferred", "SERA");
 
@@ -50,6 +52,7 @@ contract IssuanceFactoryTest is Test {
 
     function test_createIssuance_issuerCannotBeBypassedForFutureMinterChanges() public {
         Issuance.IssuanceParams memory p = IssuanceParamsBuilder.defaults(address(paymentToken), address(0), attestor);
+        vm.prank(issuer);
         (, SecurityToken securityToken) = factory.createIssuance(p, issuer, "Series A Preferred", "SERA");
 
         vm.prank(address(factory));
@@ -61,10 +64,20 @@ contract IssuanceFactoryTest is Test {
         securityToken.setMinter(makeAddr("attacker"));
     }
 
+    function test_createIssuance_revertsWhenCallerIsNotTheStatedIssuer() public {
+        Issuance.IssuanceParams memory p = IssuanceParamsBuilder.defaults(address(paymentToken), address(0), attestor);
+        address attacker = makeAddr("attacker");
+
+        vm.prank(attacker);
+        vm.expectRevert(IssuanceFactory.Unauthorized.selector);
+        factory.createIssuance(p, issuer, "Victim Corp Series A", "VCSA");
+    }
+
     function test_createIssuance_revertsWhenIssuanceParamsInvalid() public {
         Issuance.IssuanceParams memory p = IssuanceParamsBuilder.defaults(address(paymentToken), address(0), attestor);
         p.supply = 0;
 
+        vm.prank(issuer);
         vm.expectRevert(Issuance.ZeroAmount.selector);
         factory.createIssuance(p, issuer, "Series A Preferred", "SERA");
     }

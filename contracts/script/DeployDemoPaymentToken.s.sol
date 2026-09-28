@@ -6,8 +6,14 @@ import {DemoUSD} from "./mocks/DemoUSD.sol";
 
 contract DeployDemoPaymentTokenScript is Script {
     uint256 constant MINT_AMOUNT = 1_000_000e6;
+    uint256 constant ANVIL_CHAIN_ID = 31337;
 
     function run() public {
+        require(block.chainid == ANVIL_CHAIN_ID, "DeployDemoPaymentToken: local Anvil only");
+
+        // Anvil's publicly-known default dev accounts — fine to mint demo
+        // funds to locally; the guard above stops this from being mistaken
+        // for a real funding script on a public network.
         address[10] memory anvilAccounts = [
             0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,
             0x70997970C51812dc3A010C7d01b50e0d17dc79C8,

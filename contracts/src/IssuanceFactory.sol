@@ -5,6 +5,8 @@ import {Issuance} from "./Issuance.sol";
 import {SecurityToken} from "./SecurityToken.sol";
 
 contract IssuanceFactory {
+    error Unauthorized();
+
     event IssuanceCreated(
         address indexed issuance,
         address indexed securityToken,
@@ -19,6 +21,8 @@ contract IssuanceFactory {
         string memory tokenName,
         string memory tokenSymbol
     ) external returns (Issuance issuance, SecurityToken securityToken) {
+        if (msg.sender != issuer) revert Unauthorized();
+
         securityToken = new SecurityToken(tokenName, tokenSymbol, address(this));
         params_.securityToken = address(securityToken);
 
