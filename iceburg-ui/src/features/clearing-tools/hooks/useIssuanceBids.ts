@@ -1,6 +1,13 @@
 import { useReadContract, useReadContracts } from "wagmi";
 import { IssuanceAbi } from "../../../contracts";
 
+// Matches Issuance.sol's MAX_BIDS. Hardcoded rather than read from the
+// target contract's own MAX_BIDS() — this hook can be pointed at an
+// untrusted, possibly non-Issuance address (see ClearingWorkbench.tsx's
+// free-text/URL-param address input), and a malicious contract could just
+// return an inflated MAX_BIDS() to defeat a self-reported bound.
+const MAX_POSSIBLE_BIDS = 64;
+
 export interface RevealedBid {
   index: number;
   bidder: `0x${string}`;
@@ -32,9 +39,11 @@ export function useIssuanceBids(
     query: { enabled: !!issuanceAddress, refetchInterval: 12_000 },
   });
 
-  const count = rawBidCount !== undefined ? Number(rawBidCount) : 0;
+  const rawCount = rawBidCount !== undefined ? Number(rawBidCount) : 0;
+  const exceedsMaxBids = rawCount > MAX_POSSIBLE_BIDS;
+  const count = exceedsMaxBids ? 0 : rawCount;
 
-  const { data: rawBids, isLoading: bidsLoading, error } = useReadContracts({
+  const { data: rawBids, isLoading: bidsLoading, error: readError } = useReadContracts({
     contracts: Array.from({ length: count }, (_, i) => ({
       address: issuanceAddress as `0x${string}`,
       abi: IssuanceAbi,
@@ -46,6 +55,12 @@ export function useIssuanceBids(
       refetchInterval: 12_000,
     },
   });
+
+  const error = exceedsMaxBids
+    ? new Error(
+        `bidCount() returned ${rawCount}, which exceeds the protocol maximum of ${MAX_POSSIBLE_BIDS} — refusing to query bids from this contract.`,
+      )
+    : (readError as Error | null);
 
   const bids: RevealedBid[] = (rawBids ?? [])
     .map((result, i) => {
@@ -68,6 +83,6 @@ export function useIssuanceBids(
     bids,
     bidCount: count,
     isLoading: countLoading || bidsLoading,
-    error: error as Error | null,
+    error,
   };
 }

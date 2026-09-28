@@ -100,12 +100,6 @@ export function SettledPanel() {
   const [acting, setActing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const { data: issuerAddress } = useReadContract({
-    address,
-    abi: IssuanceAbi,
-    functionName: "issuer",
-  });
-
   const securityTokenAddress = params?.securityToken;
 
   const { data: tokenSymbol } = useReadContract({
@@ -126,10 +120,6 @@ export function SettledPanel() {
   const { decimals: paymentDecimals } = usePaymentTokenDecimals(params?.paymentToken);
   const { symbol: paymentSymbol } = usePaymentTokenSymbol(params?.paymentToken);
 
-  const isIssuer =
-    walletAddress &&
-    issuerAddress &&
-    walletAddress.toLowerCase() === (issuerAddress as string).toLowerCase();
   const isCancelled = state === 5;
 
   const handleCancelUnresolved = useCallback(async () => {
@@ -195,7 +185,10 @@ export function SettledPanel() {
           </div>
         )}
 
-        {!finalized && isIssuer && (
+        {/* cancelUnresolved is permissionless on-chain, same as settle() below
+            — gating it to the issuer here would contradict the contract's
+            own liveness design (anyone can finalize a cancelled offering). */}
+        {!finalized && (
           <button
             onClick={handleCancelUnresolved}
             disabled={acting}

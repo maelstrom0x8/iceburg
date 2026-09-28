@@ -39,7 +39,9 @@ function HoldingRow({ securityTokenAddress }: { securityTokenAddress: `0x${strin
       </div>
       <div className="text-right">
         <div className="text-sm font-bold" style={{ color: "var(--color-accent)" }}>
-          {(Number(balance) / 1e18).toLocaleString()} {symbol ? String(symbol) : ""}
+          {/* SecurityToken.decimals() is a pure override that always returns 0 —
+              balances are whole-share counts, never scaled. */}
+          {balance.toLocaleString()} {symbol ? String(symbol) : ""}
         </div>
         <div className="text-[11px]" style={{ color: "var(--color-app-muted)" }}>Balance</div>
       </div>
@@ -169,23 +171,26 @@ export function ActivityDashboard() {
         )}
       </section>
 
-      {/* Section 3: My Token Holdings */}
+      {/* Section 3: My Token Holdings.
+          Driven by every known issuance's security token, not by `myBids` —
+          `myBids` only reflects an *active, unrevealed* commitment
+          (`commitmentOf` is cleared on reveal), so a wallet's real holdings
+          would otherwise vanish from this section the moment its bid is
+          revealed, well before settlement even happens. HoldingRow itself
+          already renders nothing for a zero balance, so querying across all
+          known issuances is safe, not just tolerant of the ones with no
+          holding. */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold" style={{ color: "var(--color-app-text)" }}>Security Token Holdings</h2>
         <div className="space-y-3">
-          {myBids
-            .filter((b) => b.issuanceSummary.securityTokenAddress)
-            .map((b) => (
+          {allIssuances
+            .filter((iss) => iss.securityTokenAddress)
+            .map((iss) => (
               <HoldingRow
-                key={b.issuanceSummary.securityTokenAddress}
-                securityTokenAddress={b.issuanceSummary.securityTokenAddress}
+                key={iss.securityTokenAddress}
+                securityTokenAddress={iss.securityTokenAddress}
               />
             ))}
-          {myBids.filter((b) => b.issuanceSummary.securityTokenAddress).length === 0 && (
-            <div className="rounded-lg border border-dashed p-6 text-center text-sm" style={{ borderColor: "var(--color-app-border)", color: "var(--color-app-muted)" }}>
-              No settled token balances found.
-            </div>
-          )}
         </div>
       </section>
     </div>

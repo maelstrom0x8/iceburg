@@ -26,7 +26,7 @@ export function ClearingWorkbench() {
   const { isTrusted: targetIsTrusted, isLoading: trustLoading } = useIsTrustedIssuance(validAddress);
 
   const issuanceState = useIssuanceState(validAddress || zeroAddress, walletAddress);
-  const { bids, isLoading: loadingBids } = useIssuanceBids(validAddress);
+  const { bids, isLoading: loadingBids, error: bidsError } = useIssuanceBids(validAddress);
 
   const [solverResult, setSolverResult] = useState<ClearResult | null>(null);
   const [solvingError, setSolvingError] = useState<string | null>(null);
@@ -289,6 +289,10 @@ export function ClearingWorkbench() {
 
             {loadingBids ? (
               <div className="h-32 rounded-lg animate-pulse" style={{ background: "var(--color-app-surface-2)" }} />
+            ) : bidsError ? (
+              <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-6 text-center text-sm text-red-500">
+                {bidsError.message}
+              </div>
             ) : bids.length === 0 ? (
               <div className="rounded-lg border border-dashed p-6 text-center text-sm" style={{ borderColor: "var(--color-app-border)", color: "var(--color-app-muted)" }}>
                 No revealed bids found for this offering.
