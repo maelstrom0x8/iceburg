@@ -9,7 +9,6 @@ import { useIsTrustedIssuance } from "../../issuance-discovery/hooks/useIsTruste
 import { clear } from "../../../solver/clear";
 import type { Bid as SolverBid, ClearResult } from "../../../solver/types";
 import { IssuanceAbi, DemoUSDAbi } from "../../../contracts";
-import { usePaymentTokenAddress } from "../../../config/paymentToken";
 import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
 import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
 import { StateBadge } from "../../../components/ui/StateBadge";
@@ -36,9 +35,9 @@ export function ClearingWorkbench() {
 
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
-  const paymentTokenAddress = usePaymentTokenAddress();
-  const { decimals } = usePaymentTokenDecimals();
-  const { symbol } = usePaymentTokenSymbol();
+  const paymentTokenAddress = issuanceState.params?.paymentToken;
+  const { decimals } = usePaymentTokenDecimals(paymentTokenAddress);
+  const { symbol } = usePaymentTokenSymbol(paymentTokenAddress);
 
   const { data: bondAllowance } = useReadContract({
     address: paymentTokenAddress,

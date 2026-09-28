@@ -16,8 +16,9 @@ function ClaimSection({ issuanceAddress }: { issuanceAddress: `0x${string}` }) {
   const { address: walletAddress } = useAccount();
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
-  const { decimals: paymentDecimals } = usePaymentTokenDecimals();
-  const { symbol: paymentSymbol } = usePaymentTokenSymbol();
+  const { params } = useIssuanceContext();
+  const { decimals: paymentDecimals } = usePaymentTokenDecimals(params?.paymentToken);
+  const { symbol: paymentSymbol } = usePaymentTokenSymbol(params?.paymentToken);
 
   const [claiming, setClaiming] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -122,8 +123,8 @@ export function SettledPanel() {
     query: { enabled: Boolean(securityTokenAddress && walletAddress) },
   });
 
-  const { decimals: paymentDecimals } = usePaymentTokenDecimals();
-  const { symbol: paymentSymbol } = usePaymentTokenSymbol();
+  const { decimals: paymentDecimals } = usePaymentTokenDecimals(params?.paymentToken);
+  const { symbol: paymentSymbol } = usePaymentTokenSymbol(params?.paymentToken);
 
   const isIssuer =
     walletAddress &&

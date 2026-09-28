@@ -1,10 +1,8 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { parseUnits, isAddress } from "viem";
-import { useAccount, useReadContract, useWriteContract, usePublicClient } from "wagmi";
+import { useAccount, usePublicClient } from "wagmi";
 import { useLaunchOffering } from "../../../hooks/useLaunchOffering";
-import { DemoUSDAbi, IssuanceFactoryAddressByChain, useContractAddress } from "../../../contracts";
-import { usePaymentTokenAddress } from "../../../config/paymentToken";
 import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
 import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
 import { getRevertReason } from "../../../lib/revertReasons";
@@ -14,9 +12,6 @@ export function LaunchForm() {
   const { address: walletAddress } = useAccount();
   const { launch, status: launchStatus } = useLaunchOffering();
   const publicClient = usePublicClient();
-  const { writeContractAsync } = useWriteContract();
-  const paymentTokenAddress = usePaymentTokenAddress();
-  const issuanceFactoryAddress = useContractAddress(IssuanceFactoryAddressByChain);
   const { decimals } = usePaymentTokenDecimals();
   const { symbol: paymentSymbol } = usePaymentTokenSymbol();
 
@@ -28,10 +23,8 @@ export function LaunchForm() {
   const [capBpsInput, setCapBpsInput] = useState("1000"); // 10%
   const [minHoldersInput, setMinHoldersInput] = useState("2");
   const [minBondInput, setMinBondInput] = useState("10.0");
-  const [attestorsInput, setAttestorsInput] = useState(
-    walletAddress || ""
-  );
-  
+  const [attestorsInput, setAttestorsInput] = useState("");
+
   // Date/time offsets or inputs
   const [commitMinutes, setCommitMinutes] = useState("30");
   const [revealMinutes, setRevealMinutes] = useState("30");
@@ -39,15 +32,6 @@ export function LaunchForm() {
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
-  // Check DemoUSD balance and allowance for creator if bond > 0
-  const { data: allowance } = useReadContract({
-    address: paymentTokenAddress,
-    abi: DemoUSDAbi,
-    functionName: "allowance",
-    args: walletAddress && issuanceFactoryAddress ? [walletAddress, issuanceFactoryAddress] : undefined,
-    query: { enabled: Boolean(walletAddress && issuanceFactoryAddress) },
-  });
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -66,6 +50,11 @@ export function LaunchForm() {
 
       if (decimals === undefined) {
         setErrorMsg("Payment token details are still loading — try again in a moment.");
+        return;
+      }
+
+      if (!publicClient) {
+        setErrorMsg("No RPC connection is available.");
         return;
       }
 
@@ -98,7 +87,12 @@ export function LaunchForm() {
         return;
       }
 
-      const nowSec = Math.floor(Date.now() / 1000);
+      // Windows are validated on-chain against block.timestamp, not the
+      // caller's clock — read the chain's current time so a skewed local
+      // clock or slow-to-confirm tx can't shrink the intended windows or
+      // fail CommitWindowNotInFuture.
+      const latestBlock = await publicClient.getBlock();
+      const nowSec = Number(latestBlock.timestamp);
       const commitSec = Number(commitMinutes) * 60;
       const revealSec = Number(revealMinutes) * 60;
       const challengeSec = Number(challengeMinutes) * 60;
@@ -121,16 +115,6 @@ export function LaunchForm() {
 
       setSubmitting(true);
       try {
-        if (minBondWei > 0n && allowance !== undefined && allowance < minBondWei && paymentTokenAddress && issuanceFactoryAddress && publicClient) {
-          const appHash = await writeContractAsync({
-            address: paymentTokenAddress,
-            abi: DemoUSDAbi,
-            functionName: "approve",
-            args: [issuanceFactoryAddress, minBondWei * 100n],
-          });
-          await publicClient.waitForTransactionReceipt({ hash: appHash });
-        }
-
         const result = await launch({
           tokenName,
           tokenSymbol: tokenSymbol.toUpperCase(),
@@ -165,11 +149,7 @@ export function LaunchForm() {
       commitMinutes,
       revealMinutes,
       challengeMinutes,
-      allowance,
       publicClient,
-      writeContractAsync,
-      paymentTokenAddress,
-      issuanceFactoryAddress,
       decimals,
       launch,
       navigate,

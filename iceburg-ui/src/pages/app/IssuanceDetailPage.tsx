@@ -35,6 +35,7 @@ function DetailPageHeader({ address }: { address: `0x${string}` }) {
     | undefined;
 
   const securityTokenAddress = params?.[6];
+  const paymentTokenAddress = params?.[5];
 
   const { data: tokenName } = useReadContract({
     address: securityTokenAddress,
@@ -50,8 +51,8 @@ function DetailPageHeader({ address }: { address: `0x${string}` }) {
     query: { enabled: Boolean(securityTokenAddress) },
   });
 
-  const { decimals } = usePaymentTokenDecimals();
-  const { symbol } = usePaymentTokenSymbol();
+  const { decimals } = usePaymentTokenDecimals(paymentTokenAddress);
+  const { symbol } = usePaymentTokenSymbol(paymentTokenAddress);
 
   const stateNum = state !== undefined ? Number(state) : undefined;
   const reservePrice = params ? params[1] : undefined;

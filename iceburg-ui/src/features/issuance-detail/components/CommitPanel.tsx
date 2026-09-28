@@ -5,7 +5,6 @@ import { IssuanceAbi, DemoUSDAbi } from "../../../contracts";
 import { useIssuanceContext } from "../context/IssuanceContext";
 import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
 import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
-import { usePaymentTokenAddress } from "../../../config/paymentToken";
 import { useSponsoredKernelClient } from "../../../hooks/useSponsoredKernelClient";
 import { formatPrice } from "../../../lib/format";
 import { getRevertReason } from "../../../lib/revertReasons";
@@ -38,11 +37,11 @@ function generateSalt(): `0x${string}` {
   ) as `0x${string}`;
 }
 
-function computeCommitment(qty: bigint, price: bigint, salt: `0x${string}`): `0x${string}` {
+export function computeCommitment(qty: bigint, price: bigint, salt: `0x${string}`, bidder: Address): `0x${string}` {
   return keccak256(
     encodeAbiParameters(
-      parseAbiParameters("uint256 qty, uint256 price, bytes32 salt"),
-      [qty, price, salt],
+      parseAbiParameters("uint256 qty, uint256 price, bytes32 salt, address bidder"),
+      [qty, price, salt, bidder],
     ),
   );
 }
@@ -70,9 +69,9 @@ type Phase = "idle" | "approving" | "committing" | "done" | "error";
 export function CommitPanel() {
   const { address: issuanceAddress, params, commitment } = useIssuanceContext();
   const { address: walletAddress, isConnected } = useAccount();
-  const { decimals } = usePaymentTokenDecimals();
-  const { symbol } = usePaymentTokenSymbol();
-  const paymentTokenAddress = usePaymentTokenAddress();
+  const paymentTokenAddress = params?.paymentToken;
+  const { decimals } = usePaymentTokenDecimals(paymentTokenAddress);
+  const { symbol } = usePaymentTokenSymbol(paymentTokenAddress);
   const publicClient = usePublicClient();
 
   const [qty, setQty] = useState("");
@@ -139,7 +138,7 @@ export function CommitPanel() {
         }
 
         const salt = generateSalt();
-        const commitment = computeCommitment(qtyBig, priceBig, salt);
+        const commitment = computeCommitment(qtyBig, priceBig, salt, walletAddress);
 
         storeBid(issuanceAddress, walletAddress, {
           qty: qtyBig.toString(),

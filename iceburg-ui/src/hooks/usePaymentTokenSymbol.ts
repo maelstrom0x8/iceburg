@@ -1,13 +1,16 @@
 import { useReadContract } from "wagmi";
+import type { Address } from "viem";
 import { DemoUSDAbi } from "../contracts";
 import { usePaymentTokenAddress } from "../config/paymentToken";
 
-export function usePaymentTokenSymbol(): {
+// `tokenAddress` overrides the chain-wide default — see usePaymentTokenDecimals.
+export function usePaymentTokenSymbol(tokenAddress?: Address): {
   symbol: string | undefined;
   isLoading: boolean;
   error: Error | null;
 } {
-  const paymentTokenAddress = usePaymentTokenAddress();
+  const defaultAddress = usePaymentTokenAddress();
+  const paymentTokenAddress = tokenAddress ?? defaultAddress;
   const { data, isLoading, error } = useReadContract({
     address: paymentTokenAddress,
     abi: DemoUSDAbi,
