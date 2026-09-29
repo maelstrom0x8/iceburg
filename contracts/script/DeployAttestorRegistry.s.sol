@@ -5,26 +5,22 @@ import {Script, console} from "forge-std/Script.sol";
 import {AttestorRegistry} from "../src/AttestorRegistry.sol";
 
 contract DeployAttestorRegistryScript is Script {
-    // Anvil's publicly-known default account #1 — its private key is not a
-    // secret. Approving it as an attestor is fine for a local demo chain but
-    // would make the "demo attestor" cryptographically worthless (anyone can
-    // sign as it) if this script were ever run against a real network.
     address constant DEMO_ATTESTOR = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
     uint256 constant ANVIL_CHAIN_ID = 31337;
 
     function run() public {
-        require(block.chainid == ANVIL_CHAIN_ID, "DeployAttestorRegistry: local Anvil only");
-
         uint256 deployerKey = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(deployerKey);
+        address attestor = block.chainid == ANVIL_CHAIN_ID ? DEMO_ATTESTOR : deployer;
 
         vm.startBroadcast(deployerKey);
 
         AttestorRegistry registry = new AttestorRegistry(deployer);
-        registry.approveAttestor(DEMO_ATTESTOR);
+        registry.approveAttestor(attestor);
 
         vm.stopBroadcast();
 
         console.log("AttestorRegistry deployed at:", address(registry));
+        console.log("Approved attestor:", attestor);
     }
 }
