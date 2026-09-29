@@ -1,4 +1,5 @@
 import type { Address, Bid, ClearResult, IssuanceParams } from "./types";
+import { allocationsInBidOrder, verifyOnChain } from "./verifyOnChain";
 
 function addressKey(address: Address): string {
   return address.toLowerCase();
@@ -102,6 +103,14 @@ function computeRound(active: Bid[], remainingSupply: bigint, priceCeiling: bigi
   let aboveGroup: Bid[];
 
   if (naturalPrice === undefined) {
+    // Demand doesn't reach supply at any price level (including the
+    // reserve) — abundant supply, nobody actually competing for anything
+    // scarce. Every bidder in `active` wins at their own price; `price`
+    // returned here is a placeholder only (`finish()` in `clear()` derives
+    // the real reported clearing price from the winners' own minimum price
+    // afterward, and self-checks the whole result before ever claiming
+    // "cleared" — see the comment there for why a per-round price can't be
+    // trusted as *the* clearing price in general).
     price = priceCeiling;
     marginalGroup = active;
     aboveGroup = [];
@@ -128,19 +137,80 @@ function computeRound(active: Bid[], remainingSupply: bigint, priceCeiling: bigi
 
 export function clear(bids: Bid[], params: IssuanceParams): ClearResult {
   const eligible = eligiblePool(bids, params);
-  const priceCeiling = priceFloor(eligible, params.minHolders);
+  const maybeCeiling = priceFloor(eligible, params.minHolders);
 
-  if (priceCeiling === undefined) {
+  if (maybeCeiling === undefined) {
     return { kind: "unresolved" };
   }
+  // Rebound as a plain `bigint` local (not just narrowed) so the nested
+  // `finish` closure below doesn't need to re-derive the narrowing itself.
+  const priceCeiling: bigint = maybeCeiling;
 
   let active = eligible;
   let remainingSupply = params.supply;
   const finalized = new Map<Address, bigint>();
 
+  // A single reported clearing price only makes sense if every winner's own
+  // bid price is >= it (that's what "clearing price" means, and it's what
+  // the on-chain verifier checks per bid). Cap-peeling processes bidders
+  // across multiple rounds, each with its own locally-computed price, and
+  // those local prices are not guaranteed to be monotonic round to round —
+  // a bidder finalized early, at a round whose natural price matched their
+  // own bid, can end up below a *later* round's price once enough higher
+  // bidders have been peeled off and the remaining pool's dynamics shift.
+  // Reporting "whichever round ran last" can therefore report a price above
+  // an earlier-round winner's own bid. The only price guaranteed to satisfy
+  // every winner is the minimum bid price among the winners themselves,
+  // computed once at the end from the finalized set — never a per-round
+  // value.
+  const priceByBidder = new Map(eligible.map((b) => [addressKey(b.bidder), b.price]));
+
+  // Beyond price selection, the water-filling process itself has sharp
+  // edges no amount of per-case patching fully closes: `priceFloor` only
+  // checks that `minHolders` distinct addresses exist at some price —
+  // necessary, not sufficient, since integer proration in a scarce marginal
+  // tier can floor a bidder to exactly zero, realizing fewer distinct
+  // winners than that count promised — and a multi-round cap-peel can
+  // legitimately span more than one price tier in a way no single
+  // `clearingPrice` reconciles against the verifier's proration formula.
+  // Rather than trying to hand-prove every combinatorial case correct,
+  // `finish` self-checks the actual candidate against `verifyOnChain` (the
+  // same port used to fuzz this function in
+  // clear.verifier-differential.test.ts) before ever claiming "cleared" —
+  // this makes "a solver-cleared result always passes the on-chain
+  // verifier" true by construction, and falls back to the same honest
+  // `unresolved` signal used when no price achieves minHolders at all
+  // whenever it can't.
+  function finish(finalized: Map<Address, bigint>): ClearResult {
+    let min: bigint | undefined;
+    for (const [addr, qty] of finalized) {
+      if (qty === 0n) continue;
+      const price = priceByBidder.get(addressKey(addr));
+      if (price !== undefined && (min === undefined || price < min)) min = price;
+    }
+    const price = min ?? priceCeiling;
+
+    const verdict = verifyOnChain(
+      eligible,
+      params.cap,
+      params.supply,
+      params.minHolders,
+      params.reservePrice,
+      price,
+      allocationsInBidOrder(eligible, finalized),
+    );
+    if (!verdict.ok) return { kind: "unresolved" };
+
+    return { kind: "cleared", price, allocations: finalized };
+  }
+
   const maxRounds = eligible.length + 1;
   for (let round = 0; round < maxRounds; round++) {
-    const { price, allocations } = computeRound(active, remainingSupply, priceCeiling);
+    if (active.length === 0) {
+      return finish(finalized);
+    }
+
+    const { allocations } = computeRound(active, remainingSupply, priceCeiling);
 
     const violators = active.filter((b) => {
       const allocation = allocations.get(b.bidder) ?? 0n;
@@ -151,7 +221,7 @@ export function clear(bids: Bid[], params: IssuanceParams): ClearResult {
       for (const [addr, qty] of allocations) {
         if (qty > 0n) finalized.set(addr, qty);
       }
-      return { kind: "cleared", price, allocations: finalized };
+      return finish(finalized);
     }
 
     for (const bid of violators) finalized.set(bid.bidder, params.cap);

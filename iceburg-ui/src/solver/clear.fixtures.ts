@@ -60,7 +60,23 @@ export const unresolvedFixture: Fixture = {
 };
 
 export const diversityRoundingShortfallFixture: Fixture = {
-  name: "integer rounding can under-diversify a correctly-computed price floor",
+  name: "integer rounding under-diversifying a correctly-computed price floor resolves as unresolved",
+  // priceFloor finds price=5 as the level where 3 distinct bidders first
+  // appear (addr1 alone at price 10, then addr2/addr3/addr4 at price 5) —
+  // a necessary condition for minHolders=3, but not sufficient. Only 1 unit
+  // of supply remains for the 3-way tied marginal tier at price 5 once
+  // addr1 is filled, so integer proration floors two of the three to zero:
+  // realized diversity is 2 (addr1, addr2), short of minHolders=3.
+  //
+  // Originally hand-verified (Milestone 2, P1-5) as a *cleared* result —
+  // {price: 5, allocations: {addr1: 10, addr2: 1}} — treating the
+  // under-diversification as an acceptable, documented quirk rather than a
+  // bug. It was never checked against the actual on-chain verifyClearing:
+  // that allocation has only 2 distinct winners against minHolders=3, and
+  // Issuance.sol's DiversityNotMet check would reject it outright. Found by
+  // clear.verifier-differential.test.ts (backlog.md P4-20) and corrected —
+  // clear() now recognizes a realized-diversity shortfall and reports
+  // `unresolved` instead of a `cleared` result the verifier would bounce.
   bids: [
     { bidder: addr(1), qty: 10n, price: 10n, eligible: true },
     { bidder: addr(2), qty: 1n, price: 5n, eligible: true },
@@ -68,14 +84,7 @@ export const diversityRoundingShortfallFixture: Fixture = {
     { bidder: addr(4), qty: 1n, price: 5n, eligible: true },
   ],
   params: { supply: 11n, reservePrice: 1n, cap: 100n, minHolders: 3n },
-  expected: {
-    kind: "cleared",
-    price: 5n,
-    allocations: new Map([
-      [addr(1), 10n],
-      [addr(2), 1n],
-    ]),
-  },
+  expected: { kind: "unresolved" },
 };
 
 export const allFixtures: Fixture[] = [
