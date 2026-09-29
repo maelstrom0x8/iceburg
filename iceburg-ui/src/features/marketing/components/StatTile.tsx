@@ -42,7 +42,7 @@ export function StatTile({
   return (
     <div className="text-center sm:text-left">
       <div
-        className="font-display text-4xl sm:text-5xl font-semibold tabular-nums"
+        className="text-4xl sm:text-5xl font-semibold tabular-nums"
         style={{ color: dark ? "#f0f2f5" : "var(--color-app-text)" }}
       >
         {prefix}

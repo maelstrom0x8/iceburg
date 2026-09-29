@@ -5,7 +5,7 @@ import { Footer } from "./Footer";
 export function MarketingLayout() {
   return (
     <div
-      className="marketing-shell flex min-h-dvh flex-col"
+      className="flex min-h-dvh flex-col"
       style={{ background: "var(--color-app-bg)", color: "var(--color-app-text)" }}
     >
       <Navbar />

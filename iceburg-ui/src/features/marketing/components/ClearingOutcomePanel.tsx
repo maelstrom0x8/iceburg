@@ -83,7 +83,7 @@ export function ClearingOutcomePanel() {
               Example offering
             </span>
           </div>
-          <div className="font-display text-2xl font-semibold mt-1" style={{ color: "var(--color-accent-light)" }}>
+          <div className="text-2xl font-semibold mt-1" style={{ color: "var(--color-accent-light)" }}>
             {formatPrice(clearingPrice)}
           </div>
         </div>

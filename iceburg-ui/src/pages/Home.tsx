@@ -22,16 +22,16 @@ const AUDIENCE = {
   issuer: {
     eyebrow: "For issuers",
     tiles: [
-      { label: "Locked at launch", caption: "Reserve price and caps can't change once bidding opens." },
-      { label: "Enforced, not promised", caption: "The distribution floor is met automatically, or the offering doesn't settle." },
-      { label: "Public by default", caption: "Every bid and result is inspectable — not a support ticket." },
+      { label: "Locked at launch", caption: "Floor price and concentration caps cannot change once bidding opens." },
+      { label: "Enforced, not promised", caption: "The holder requirement is met automatically, or the offering doesn't settle." },
+      { label: "Public by default", caption: "Every bid and outcome is inspectable — not a support ticket." },
     ],
   },
   bidder: {
     eyebrow: "For bidders",
     tiles: [
-      { label: "Sealed until reveal", caption: "Nobody sees your bid first, including the issuer." },
-      { label: "Ruled, not judged", caption: "Price and allocation follow the bids, not a person's call." },
+      { label: "Sealed until confirmed", caption: "Nobody sees your bid first, including the issuer." },
+      { label: "Ruled, not judged", caption: "Price and allocation follow the locked terms, not a person's call." },
       { label: "Refunded automatically", caption: "Not filled, or the offering doesn't clear — full refund, no manual step." },
     ],
   },
@@ -51,16 +51,16 @@ export function Home() {
         >
           <div className="relative mx-auto max-w-3xl px-4 pt-20 pb-14 text-center sm:px-6 sm:pt-28">
             <span className="inline-flex rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
-              Primary issuance protocol
+              First sale system
             </span>
             <h1
-              className="font-display mt-5 text-5xl font-semibold tracking-tight sm:text-6xl"
+              className="mt-5 text-5xl font-semibold tracking-tight sm:text-6xl"
               style={{ color: "var(--color-app-text)" }}
             >
-              The Verifiable Primary Market.
+              Fixed terms. Bids set the price.
             </h1>
             <p className="mt-5 text-base leading-relaxed sm:text-lg" style={{ color: "var(--color-app-muted)" }}>
-              Set the rules before bidding starts. Let the bids set the price. Check the result
+              Set the terms before bidding starts. Let the bids set the price. Check the outcome
               yourself.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -104,8 +104,8 @@ export function Home() {
         <section style={{ background: "#0d0e11" }} className="py-20">
           <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
             <Reveal>
-              <h2 className="font-display text-4xl font-semibold tracking-tight sm:text-5xl" style={{ color: "#f0f2f5" }}>
-                The bids compute the result. Anyone can check it.
+              <h2 className="text-4xl font-semibold tracking-tight sm:text-5xl" style={{ color: "#f0f2f5" }}>
+                The bids compute the outcome. Anyone can check it.
               </h2>
               <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
                 <a href={`${APP_URL}/issue`} className={PRIMARY_BUTTON}>
@@ -126,9 +126,9 @@ export function Home() {
 
           <StaggerGroup className="mx-auto mt-10 grid max-w-3xl grid-cols-1 gap-4 px-4 sm:grid-cols-3 sm:px-6">
             {[
-              { label: "Fixed before bidding", caption: "Reserve, cap, and floor are locked at launch." },
-              { label: "Computed from bids", caption: "Price and allocation follow the published rule, not a person." },
-              { label: "Open to challenge", caption: "A better result replaces a worse one — and gets paid to." },
+              { label: "Fixed before bidding", caption: "Floor price, caps, and holder minimums are locked at launch." },
+              { label: "Computed from bids", caption: "Price and allocation follow the locked terms, not a person." },
+              { label: "Open to challenge", caption: "A better outcome replaces a worse one — and gets paid." },
             ].map((tile) => (
               <StaggerItem
                 key={tile.label}
@@ -149,8 +149,8 @@ export function Home() {
         {/* Isolated CTA */}
         <section className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
           <Reveal>
-            <h2 className="font-display text-3xl font-semibold tracking-tight" style={{ color: "var(--color-app-text)" }}>
-              Ready to run an offering on published rules?
+            <h2 className="text-3xl font-semibold tracking-tight" style={{ color: "var(--color-app-text)" }}>
+              Ready to run an offering on fixed terms?
             </h2>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
               <a href={`${APP_URL}/issue`} className={PRIMARY_BUTTON}>
@@ -195,7 +195,7 @@ export function Home() {
         {/* Chart */}
         <section className="mx-auto max-w-3xl px-4 py-20 sm:px-6">
           <Reveal>
-            <h2 className="font-display text-3xl font-semibold tracking-tight text-center" style={{ color: "var(--color-app-text)" }}>
+            <h2 className="text-3xl font-semibold tracking-tight text-center" style={{ color: "var(--color-app-text)" }}>
               Where the price actually comes from
             </h2>
             <p className="mt-3 text-sm text-center max-w-lg mx-auto" style={{ color: "var(--color-app-muted)" }}>
@@ -215,7 +215,7 @@ export function Home() {
         {/* FAQ */}
         <section id="faq" className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
           <Reveal>
-            <h2 className="font-display text-3xl font-semibold tracking-tight text-center" style={{ color: "var(--color-app-text)" }}>
+            <h2 className="text-3xl font-semibold tracking-tight text-center" style={{ color: "var(--color-app-text)" }}>
               Common questions
             </h2>
           </Reveal>
@@ -231,7 +231,7 @@ export function Home() {
               className="rounded-xl px-6 py-10 text-center sm:px-12"
               style={{ background: "var(--color-app-surface)", border: "1px solid var(--color-app-border)" }}
             >
-              <h2 className="font-display text-2xl font-semibold tracking-tight" style={{ color: "var(--color-app-text)" }}>
+              <h2 className="text-2xl font-semibold tracking-tight" style={{ color: "var(--color-app-text)" }}>
                 See it running.
               </h2>
               <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-app-muted)" }}>

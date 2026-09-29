@@ -79,7 +79,7 @@ export function Navbar() {
   }
 
   return (
-    <header className={`marketing-header-scale sticky top-0 z-50 border-b border-app-border bg-app-surface/80 backdrop-blur transition-shadow${scrolled ? " shadow-md shadow-black/10 dark:shadow-black/40" : ""}`}>
+    <header className={`sticky top-0 z-50 border-b border-app-border bg-app-surface/80 backdrop-blur transition-shadow${scrolled ? " shadow-md shadow-black/10 dark:shadow-black/40" : ""}`}>
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6" aria-label="Primary">
         <Link to="/" className={`flex items-center gap-2 rounded-md ${FOCUS_RING}`}>
           <IcebergMark />
