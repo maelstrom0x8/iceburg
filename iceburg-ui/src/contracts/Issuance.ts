@@ -90,6 +90,19 @@ export const IssuanceAbi = [
   },
   {
     "type": "function",
+    "name": "CLEARING_PENDING_TIMEOUT",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "MAX_ATTESTORS",
     "inputs": [],
     "outputs": [
@@ -232,6 +245,13 @@ export const IssuanceAbi = [
       }
     ],
     "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "cancelStalledClearing",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -852,6 +872,12 @@ export const IssuanceAbi = [
   },
   {
     "type": "event",
+    "name": "ClearingPendingTimedOut",
+    "inputs": [],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "ClearingProposed",
     "inputs": [
       {
@@ -1142,6 +1168,11 @@ export const IssuanceAbi = [
   {
     "type": "error",
     "name": "ChallengeWindowStillOpen",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ClearingPendingStillOpen",
     "inputs": []
   },
   {
