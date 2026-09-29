@@ -307,7 +307,8 @@ export function ClearingWorkbench() {
                       <th className="px-4 py-3 text-right text-xs uppercase font-medium" style={{ color: "var(--color-app-muted)" }}>Quantity</th>
                       <th className="px-4 py-3 text-right text-xs uppercase font-medium" style={{ color: "var(--color-app-muted)" }}>Price</th>
                       <th className="px-4 py-3 text-center text-xs uppercase font-medium" style={{ color: "var(--color-app-muted)" }}>Eligible</th>
-                      <th className="px-4 py-3 text-right rounded-r-lg text-xs uppercase font-medium" style={{ color: "var(--color-app-muted)" }}>Escrow Locked</th>
+                      <th className="px-4 py-3 text-right text-xs uppercase font-medium" style={{ color: "var(--color-app-muted)" }}>Escrow Locked</th>
+                      <th className="px-4 py-3 text-right rounded-r-lg text-xs uppercase font-medium" style={{ color: "var(--color-app-muted)" }}>Attestor</th>
                     </tr>
                   </thead>
                   <tbody className="text-xs font-mono">
@@ -328,6 +329,9 @@ export function ClearingWorkbench() {
                         </td>
                         <td className="px-4 py-3 text-right font-sans" style={{ color: "var(--color-app-text)" }}>
                           {decimals !== undefined ? `${formatPrice(b.escrow, decimals)} ${symbol ?? ""}` : "…"}
+                        </td>
+                        <td className="px-4 py-3 text-right" style={{ color: "var(--color-app-muted)" }} title={b.attestor}>
+                          {b.attestor.slice(0, 6)}…{b.attestor.slice(-4)}
                         </td>
                       </tr>
                     ))}

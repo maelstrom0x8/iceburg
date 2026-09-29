@@ -15,6 +15,8 @@ export interface RevealedBid {
   price: bigint;
   eligible: boolean;
   escrow: bigint;
+  attestor: `0x${string}`;
+  attestationExpiry: bigint;
 }
 
 /**
@@ -65,7 +67,7 @@ export function useIssuanceBids(
   const bids: RevealedBid[] = (rawBids ?? [])
     .map((result, i) => {
       const raw = result.result as
-        | readonly [`0x${string}`, bigint, bigint, boolean, bigint]
+        | readonly [`0x${string}`, bigint, bigint, boolean, bigint, `0x${string}`, bigint]
         | undefined;
       if (!raw) return null;
       return {
@@ -75,6 +77,8 @@ export function useIssuanceBids(
         price: raw[2],
         eligible: raw[3],
         escrow: raw[4],
+        attestor: raw[5],
+        attestationExpiry: raw[6],
       };
     })
     .filter((b): b is RevealedBid => b !== null);

@@ -116,6 +116,19 @@ export const IssuanceAbi = [
   },
   {
     "type": "function",
+    "name": "MAX_CHALLENGE_HORIZON",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "approvedAttestors",
     "inputs": [],
     "outputs": [
@@ -191,6 +204,16 @@ export const IssuanceAbi = [
             "name": "escrow",
             "type": "uint256",
             "internalType": "uint256"
+          },
+          {
+            "name": "attestor",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "attestationExpiry",
+            "type": "uint64",
+            "internalType": "uint64"
           }
         ]
       }
@@ -421,6 +444,19 @@ export const IssuanceAbi = [
         "name": "",
         "type": "bool",
         "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "firstClearingProposedAt",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
       }
     ],
     "stateMutability": "view"
@@ -1090,6 +1126,11 @@ export const IssuanceAbi = [
   },
   {
     "type": "error",
+    "name": "ChallengeHorizonElapsed",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "ChallengeWindowElapsed",
     "inputs": []
   },
@@ -1190,6 +1231,11 @@ export const IssuanceAbi = [
   {
     "type": "error",
     "name": "InvalidShortString",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "IssuerCannotBid",
     "inputs": []
   },
   {

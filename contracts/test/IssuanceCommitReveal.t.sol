@@ -169,6 +169,8 @@ contract IssuanceCommitRevealTest is Test {
         assertEq(bid.price, price);
         assertTrue(bid.eligible);
         assertEq(bid.escrow, qty * price);
+        assertEq(bid.attestor, attestor);
+        assertEq(bid.attestationExpiry, expiry);
 
         assertEq(issuance.commitmentOf(bidder), bytes32(0));
         assertEq(issuance.commitBondOf(bidder), 0);

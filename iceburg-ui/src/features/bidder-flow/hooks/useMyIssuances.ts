@@ -1,13 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { usePublicClient } from "wagmi";
-import { parseEventLogs } from "viem";
+import { getAbiItem, parseEventLogs } from "viem";
 import { IssuanceFactoryAbi, IssuanceFactoryAddressByChain, useContractAddress } from "../../../contracts";
 import type { IssuanceSummary } from "../../issuance-discovery/hooks/useIssuances";
 
+const issuanceCreatedEvent = getAbiItem({ abi: IssuanceFactoryAbi, name: "IssuanceCreated" });
+
 /**
  * Returns only the issuances created by `issuerAddress`.
- * Filters by the indexed `issuer` topic directly in the RPC call —
- * no client-side scanning over all events.
+ * Filters by the indexed `issuer` topic directly in the RPC call (`args` on
+ * `getLogs`, translated into an eth_getLogs topic filter) — no client-side
+ * scanning over all events.
  */
 export function useMyIssuances(issuerAddress: `0x${string}` | undefined): {
   issuances: IssuanceSummary[];
@@ -26,6 +29,8 @@ export function useMyIssuances(issuerAddress: `0x${string}` | undefined): {
 
       const logs = await publicClient.getLogs({
         address: issuanceFactoryAddress,
+        event: issuanceCreatedEvent,
+        args: { issuer: issuerAddress },
         fromBlock: 0n,
         toBlock: "latest",
       });
@@ -38,11 +43,6 @@ export function useMyIssuances(issuerAddress: `0x${string}` | undefined): {
       });
 
       return parsed
-        .filter(
-          (log) =>
-            (log.args.issuer as string | undefined)?.toLowerCase() ===
-            issuerAddress.toLowerCase(),
-        )
         .map((log) => ({
           issuanceAddress: log.args.issuance as `0x${string}`,
           securityTokenAddress: log.args.securityToken as `0x${string}`,

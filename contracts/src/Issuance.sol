@@ -49,6 +49,8 @@ contract Issuance is ReentrancyGuard, EIP712 {
         uint256 price;
         bool eligible;
         uint256 escrow;
+        address attestor;
+        uint64 attestationExpiry;
     }
 
     struct Proposal {
@@ -284,7 +286,9 @@ contract Issuance is ReentrancyGuard, EIP712 {
         bytes32 commitment = commitmentOf[msg.sender];
         if (commitment == bytes32(0)) revert NoCommitment();
         if (keccak256(abi.encode(qty, price, salt, msg.sender)) != commitment) revert CommitmentMismatch();
-        if (!_isValidAttestation(msg.sender, attestationExpiry, attestationSignature)) revert InvalidAttestation();
+        (bool attestationOk, address attestor) =
+            _isValidAttestation(msg.sender, attestationExpiry, attestationSignature);
+        if (!attestationOk) revert InvalidAttestation();
 
         uint256 escrow = qty * price;
         if (escrow == 0) revert ZeroAmount();
@@ -293,7 +297,17 @@ contract Issuance is ReentrancyGuard, EIP712 {
         uint256 bond = commitBondOf[msg.sender];
         commitBondOf[msg.sender] = 0;
 
-        _bids.push(Bid({bidder: msg.sender, qty: qty, price: price, eligible: true, escrow: escrow}));
+        _bids.push(
+            Bid({
+                bidder: msg.sender,
+                qty: qty,
+                price: price,
+                eligible: true,
+                escrow: escrow,
+                attestor: attestor,
+                attestationExpiry: attestationExpiry
+            })
+        );
 
         emit BidRevealed(msg.sender, qty, price);
 
@@ -327,15 +341,16 @@ contract Issuance is ReentrancyGuard, EIP712 {
     function _isValidAttestation(address bidder, uint64 expiry, bytes calldata signature)
         internal
         view
-        returns (bool)
+        returns (bool ok, address signer)
     {
-        if (block.timestamp > expiry) return false;
+        if (block.timestamp > expiry) return (false, address(0));
 
         bytes32 digest = attestationDigest(bidder, expiry);
-        (address signer, ECDSA.RecoverError err,) = ECDSA.tryRecover(digest, signature);
-        if (err != ECDSA.RecoverError.NoError) return false;
+        ECDSA.RecoverError err;
+        (signer, err,) = ECDSA.tryRecover(digest, signature);
+        if (err != ECDSA.RecoverError.NoError) return (false, address(0));
 
-        return _isApprovedAttestor(signer);
+        return (_isApprovedAttestor(signer), signer);
     }
 
     function _isApprovedAttestor(address signer) internal view returns (bool) {
