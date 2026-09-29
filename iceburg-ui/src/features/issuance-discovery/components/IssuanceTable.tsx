@@ -51,12 +51,16 @@ function IssuanceRow({
     query: { refetchInterval: 12_000 },
   });
 
-  const { decimals } = usePaymentTokenDecimals();
-  const { symbol } = usePaymentTokenSymbol();
-
   const params = rawParams as
     | readonly [bigint, bigint, number, number, bigint, `0x${string}`, `0x${string}`, bigint, bigint, bigint]
     | undefined;
+
+  // Each row is a different Issuance, potentially with a different payment
+  // token (the protocol accepts an arbitrary one per offering) — resolve
+  // decimals/symbol from this row's own params, not chain-wide config.
+  const paymentTokenAddress = params ? params[5] : undefined;
+  const { decimals } = usePaymentTokenDecimals(paymentTokenAddress);
+  const { symbol } = usePaymentTokenSymbol(paymentTokenAddress);
 
   const stateNum = state !== undefined ? Number(state) : undefined;
   const reservePrice = params ? params[1] : undefined;
