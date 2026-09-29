@@ -152,7 +152,7 @@ describe("clear vs. the on-chain verifier (differential)", () => {
     expect(verdict.ok).toBe(true);
   });
 
-  it("regression: a scarce marginal tier that can't reach minHolders resolves as unresolved, not a false cleared", () => {
+  it("regression: a scarce all-must-win tier clears by reserving supply for every diversity-critical bidder", () => {
     const bids: Bid[] = [
       { bidder: toAddress(0), qty: 1n, price: 5n, eligible: true },
       { bidder: toAddress(1), qty: 1n, price: 5n, eligible: true },
@@ -163,6 +163,14 @@ describe("clear vs. the on-chain verifier (differential)", () => {
     const params: IssuanceParams = { supply: 6n, reservePrice: 1n, cap: 2n, minHolders: 5n };
 
     const result = clear(bids, params);
-    expect(result.kind).toBe("unresolved");
+    expect(result.kind).toBe("cleared");
+    if (result.kind !== "cleared") return;
+
+    const allocations = allocationsInBidOrder(bids, result.allocations);
+    const verdict = verifyOnChain(bids, params.cap, params.supply, params.minHolders, params.reservePrice, result.price, allocations);
+    expect(verdict.ok).toBe(true);
+    for (const bid of bids) {
+      expect(result.allocations.get(bid.bidder)).toBeGreaterThan(0n);
+    }
   });
 });

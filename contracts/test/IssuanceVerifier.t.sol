@@ -89,7 +89,7 @@ contract IssuanceVerifierTest is Test {
         allocations[1] = 50;
         allocations[2] = 0;
 
-        (uint256 totalAllocated, uint256 distinctWinners) = issuance.verifyClearing(8, allocations);
+        (uint256 totalAllocated, uint256 distinctWinners,) = issuance.verifyClearing(8, allocations);
         assertEq(totalAllocated, 100);
         assertEq(distinctWinners, 2);
     }
@@ -112,7 +112,7 @@ contract IssuanceVerifierTest is Test {
         allocations[2] = 5;
         allocations[3] = 0;
 
-        (uint256 totalAllocated, uint256 distinctWinners) = issuance.verifyClearing(5, allocations);
+        (uint256 totalAllocated, uint256 distinctWinners,) = issuance.verifyClearing(5, allocations);
         assertEq(totalAllocated, 100);
         assertEq(distinctWinners, 3);
     }
@@ -138,7 +138,7 @@ contract IssuanceVerifierTest is Test {
         allocations[3] = 0;
         allocations[4] = 5;
 
-        (uint256 totalAllocated, uint256 distinctWinners) = issuance.verifyClearing(5, allocations);
+        (uint256 totalAllocated, uint256 distinctWinners,) = issuance.verifyClearing(5, allocations);
         assertEq(totalAllocated, 100);
         assertEq(distinctWinners, 4);
     }
@@ -230,7 +230,7 @@ contract IssuanceVerifierTest is Test {
         allocations[1] = 50;
         allocations[2] = 0;
 
-        (uint256 totalAllocated,) = issuance.verifyClearing(8, allocations);
+        (uint256 totalAllocated,,) = issuance.verifyClearing(8, allocations);
         assertEq(totalAllocated, 99);
     }
 
@@ -318,7 +318,7 @@ contract IssuanceVerifierTest is Test {
         allocations[0] = 1;
         allocations[1] = 0;
 
-        (uint256 totalAllocated, uint256 distinctWinners) = issuance.verifyClearing(10, allocations);
+        (uint256 totalAllocated, uint256 distinctWinners,) = issuance.verifyClearing(10, allocations);
         assertEq(totalAllocated, 1);
         assertEq(distinctWinners, 1);
     }
@@ -335,7 +335,7 @@ contract IssuanceVerifierTest is Test {
         allocations[0] = 0;
         allocations[1] = 1;
 
-        (uint256 totalAllocated,) = issuance.verifyClearing(10, allocations);
+        (uint256 totalAllocated,,) = issuance.verifyClearing(10, allocations);
         assertEq(totalAllocated, 1);
     }
 
@@ -356,7 +356,7 @@ contract IssuanceVerifierTest is Test {
         allocations[0] = 50;
         allocations[1] = 30;
 
-        (uint256 totalAllocated,) = issuance.verifyClearing(10, allocations);
+        (uint256 totalAllocated,,) = issuance.verifyClearing(10, allocations);
         assertEq(totalAllocated, 80);
     }
 
@@ -377,7 +377,7 @@ contract IssuanceVerifierTest is Test {
         allocations[0] = 50; // capped, satisfied
         allocations[1] = 30; // rationed
 
-        (uint256 totalAllocated,) = issuance.verifyClearing(10, allocations);
+        (uint256 totalAllocated,,) = issuance.verifyClearing(10, allocations);
         assertEq(totalAllocated, 80);
     }
 

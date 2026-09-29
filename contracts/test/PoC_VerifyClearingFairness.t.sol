@@ -78,7 +78,7 @@ contract PoC_VerifyClearingFairnessTest is Test {
         fair[1] = 50;
         fair[2] = 50;
 
-        (uint256 totalAllocated,) = issuance.verifyClearing(10, fair);
+        (uint256 totalAllocated,,) = issuance.verifyClearing(10, fair);
         assertEq(totalAllocated, 150);
     }
 

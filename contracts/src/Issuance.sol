@@ -373,7 +373,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
     function verifyClearing(uint256 clearingPrice, uint256[] calldata allocations)
         public
         view
-        returns (uint256 totalAllocated, uint256 distinctWinners)
+        returns (uint256 totalAllocated, uint256 distinctWinners, uint256 weightedValue)
     {
         uint256 n = _bids.length;
         if (allocations.length != n) revert AllocationLengthMismatch(allocations.length, n);
@@ -402,6 +402,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
             if (allocation > 0 && !b.eligible) revert IneligibleBidder(i);
 
             totalAllocated += allocation;
+            weightedValue += b.price * allocation;
             if (allocation > 0) distinctWinners++;
         }
 
@@ -480,6 +481,13 @@ contract Issuance is ReentrancyGuard, EIP712 {
         }
     }
 
+    function _sumWeightedAllocations(uint256[] storage allocations) internal view returns (uint256 total) {
+        uint256 len = allocations.length;
+        for (uint256 i = 0; i < len; i++) {
+            total += _bids[i].price * allocations[i];
+        }
+    }
+
     function _countAtOrAboveReserve() internal view returns (uint256 count) {
         uint256 n = _bids.length;
         uint256 reserve = _params.reservePrice;
@@ -514,7 +522,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
         if (state != State.CLEARING_PENDING) revert WrongState(State.CLEARING_PENDING, state);
         if (bond < _params.minBond) revert BondTooLow(bond, _params.minBond);
 
-        (uint256 totalAllocated,) = verifyClearing(clearingPrice, allocations);
+        (uint256 totalAllocated,,) = verifyClearing(clearingPrice, allocations);
 
         if (firstClearingProposedAt == 0) firstClearingProposedAt = uint64(block.timestamp);
 
@@ -556,7 +564,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
         if (block.timestamp >= firstClearingProposedAt + MAX_CHALLENGE_HORIZON) revert ChallengeHorizonElapsed();
         if (bond < _params.minBond) revert BondTooLow(bond, _params.minBond);
 
-        (uint256 totalAllocated,) = verifyClearing(clearingPrice, allocations);
+        (uint256 totalAllocated,, uint256 newWeighted) = verifyClearing(clearingPrice, allocations);
 
         bool beatsStanding;
         if (_standingProposal.isUnresolvedClaim) {
@@ -565,8 +573,10 @@ contract Issuance is ReentrancyGuard, EIP712 {
             uint256 newRevenue = clearingPrice * totalAllocated;
             uint256 standingVolume = _sumAllocations(_standingProposal.allocations);
             uint256 standingRevenue = _standingProposal.clearingPrice * standingVolume;
-            beatsStanding =
-                newRevenue > standingRevenue || (newRevenue == standingRevenue && totalAllocated > standingVolume);
+            uint256 standingWeighted = _sumWeightedAllocations(_standingProposal.allocations);
+            beatsStanding = newRevenue > standingRevenue
+                || (newRevenue == standingRevenue && totalAllocated > standingVolume)
+                || (newRevenue == standingRevenue && totalAllocated == standingVolume && newWeighted > standingWeighted);
         }
         if (!beatsStanding) revert DoesNotBeatStanding();
 

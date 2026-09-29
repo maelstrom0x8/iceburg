@@ -684,6 +684,11 @@ export const IssuanceAbi = [
         "name": "distinctWinners",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "weightedValue",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -1268,6 +1273,22 @@ export const IssuanceAbi = [
     "type": "error",
     "name": "NoCommitment",
     "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NonConservativeToken",
+    "inputs": [
+      {
+        "name": "expected",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "received",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
   },
   {
     "type": "error",

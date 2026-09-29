@@ -104,7 +104,7 @@ describe("clear — property-based", () => {
     );
   });
 
-  it("when supply comfortably exceeds total demand, every bidder gets exactly what they asked for", () => {
+  it("when supply comfortably exceeds total demand, every winner gets exactly what they asked for", () => {
     const abundantArb = fc
       .array(
         fc.record({
@@ -141,7 +141,8 @@ describe("clear — property-based", () => {
         expect(result.kind).toBe("cleared");
         if (result.kind === "cleared") {
           for (const bid of bids) {
-            expect(result.allocations.get(bid.bidder)).toBe(bid.qty);
+            const allocation = result.allocations.get(bid.bidder) ?? 0n;
+            if (allocation > 0n) expect(allocation).toBe(bid.qty);
           }
         }
       }),

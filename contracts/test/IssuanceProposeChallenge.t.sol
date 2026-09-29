@@ -229,6 +229,75 @@ contract IssuanceProposeChallengeTest is Test {
         assertEq(paymentToken.balanceOf(address(issuance)), 1_200 + 10);
     }
 
+    function test_challengeClearing_beatsEqualRevenueEqualVolumeByWeightedValue() public {
+        _deploy(3, 1, 6_667, 1);
+        _commit(1, 2, 10);
+        _commit(2, 2, 9);
+        _commit(3, 2, 8);
+        vm.warp(commitWindowEnd);
+        issuance.closeCommitWindow();
+        _reveal(1, 2, 10);
+        _reveal(2, 2, 9);
+        _reveal(3, 2, 8);
+        vm.warp(revealWindowEnd);
+        issuance.closeRevealWindow();
+
+        address firstProposer = _fundProposer(100, 10);
+        address challenger = _fundProposer(101, 10);
+
+        uint256[] memory lowerWeighted = new uint256[](3);
+        lowerWeighted[0] = 1;
+        lowerWeighted[1] = 2;
+        lowerWeighted[2] = 0;
+
+        vm.prank(firstProposer);
+        issuance.proposeClearing(9, lowerWeighted, 10);
+
+        uint256[] memory higherWeighted = new uint256[](3);
+        higherWeighted[0] = 2;
+        higherWeighted[1] = 1;
+        higherWeighted[2] = 0;
+
+        vm.prank(challenger);
+        issuance.challengeClearing(9, higherWeighted, 10);
+
+        (uint256 price, uint256[] memory allocs, address recordedProposer,,,) = issuance.standingProposal();
+        assertEq(price, 9);
+        assertEq(recordedProposer, challenger);
+        assertEq(allocs[0], 2);
+        assertEq(allocs[1], 1);
+        assertEq(allocs[2], 0);
+    }
+
+    function test_challengeClearing_revertsWhenEqualRevenueEqualVolumeEqualWeightedValue() public {
+        _deploy(3, 1, 6_667, 1);
+        _commit(1, 2, 10);
+        _commit(2, 2, 9);
+        _commit(3, 2, 8);
+        vm.warp(commitWindowEnd);
+        issuance.closeCommitWindow();
+        _reveal(1, 2, 10);
+        _reveal(2, 2, 9);
+        _reveal(3, 2, 8);
+        vm.warp(revealWindowEnd);
+        issuance.closeRevealWindow();
+
+        address firstProposer = _fundProposer(100, 10);
+        address challenger = _fundProposer(101, 10);
+
+        uint256[] memory allocations = new uint256[](3);
+        allocations[0] = 2;
+        allocations[1] = 1;
+        allocations[2] = 0;
+
+        vm.prank(firstProposer);
+        issuance.proposeClearing(9, allocations, 10);
+
+        vm.prank(challenger);
+        vm.expectRevert(Issuance.DoesNotBeatStanding.selector);
+        issuance.challengeClearing(9, allocations, 10);
+    }
+
     function test_challengeClearing_revertsWhenNotBetter() public {
         _setUpCapPeelingScenario();
         address firstProposer = _fundProposer(100, 10);

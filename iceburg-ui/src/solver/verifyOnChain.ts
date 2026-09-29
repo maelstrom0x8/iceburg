@@ -15,6 +15,12 @@ import type { Address, Bid } from "./types";
 //
 // If contracts/src/Issuance.sol's verifyClearing changes, this port needs
 // to change with it, or both uses above stop meaning anything.
+export interface OnChainVerdict {
+  totalAllocated: bigint;
+  distinctWinners: number;
+  weightedValue: bigint;
+}
+
 export function verifyOnChain(
   bids: readonly Bid[],
   cap: bigint,
@@ -23,7 +29,7 @@ export function verifyOnChain(
   reservePrice: bigint,
   clearingPrice: bigint,
   allocations: readonly bigint[],
-): { ok: true } | { ok: false; reason: string } {
+): ({ ok: true } & OnChainVerdict) | { ok: false; reason: string } {
   const n = bids.length;
   if (allocations.length !== n) return { ok: false, reason: "AllocationLengthMismatch" };
   if (clearingPrice < reservePrice) return { ok: false, reason: "ReserveNotMet" };
@@ -32,6 +38,7 @@ export function verifyOnChain(
   let rationedAllocated = 0n;
   let totalAllocated = 0n;
   let distinctWinners = 0;
+  let weightedValue = 0n;
 
   for (let i = 0; i < n; i++) {
     const b = bids[i];
@@ -52,6 +59,7 @@ export function verifyOnChain(
     if (allocation > 0n && !b.eligible) return { ok: false, reason: `IneligibleBidder(${i})` };
 
     totalAllocated += allocation;
+    weightedValue += b.price * allocation;
     if (allocation > 0n) distinctWinners++;
   }
 
@@ -85,7 +93,7 @@ export function verifyOnChain(
     }
   }
 
-  return { ok: true };
+  return { ok: true, totalAllocated, distinctWinners, weightedValue };
 }
 
 export function allocationsInBidOrder(
@@ -93,4 +101,17 @@ export function allocationsInBidOrder(
   allocations: ReadonlyMap<Address, bigint>,
 ): bigint[] {
   return bids.map((b) => allocations.get(b.bidder) ?? 0n);
+}
+
+export function beatsOnChain(
+  challenger: OnChainVerdict & { clearingPrice: bigint },
+  standing: OnChainVerdict & { clearingPrice: bigint },
+): boolean {
+  const challengerRevenue = challenger.clearingPrice * challenger.totalAllocated;
+  const standingRevenue = standing.clearingPrice * standing.totalAllocated;
+  if (challengerRevenue !== standingRevenue) return challengerRevenue > standingRevenue;
+  if (challenger.totalAllocated !== standing.totalAllocated) {
+    return challenger.totalAllocated > standing.totalAllocated;
+  }
+  return challenger.weightedValue > standing.weightedValue;
 }

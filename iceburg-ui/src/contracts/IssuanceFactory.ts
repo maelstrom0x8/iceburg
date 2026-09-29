@@ -143,6 +143,6 @@ export const IssuanceFactoryAbi = [
 ] as const;
 
 export const IssuanceFactoryAddressByChain: Record<number, `0x${string}`> = {
-  "31337": "0xbc49117421ced947a856e8273b2634902cbf4214",
+  "31337": "0x0dcd1bf9a1b36ce34237eeafef220932846bcd82",
   "46630": "0xa7ea9080a745da1d5334e99c2f899400c58bf974"
 };
