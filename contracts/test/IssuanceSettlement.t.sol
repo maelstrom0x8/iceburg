@@ -385,6 +385,84 @@ contract IssuanceSettlementTest is Test {
         issuance.cancelUnresolved();
     }
 
+    function test_cancelStalledClearing_revertsForWrongState() public {
+        _deploy(100, 1, 5_000, 2);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Issuance.WrongState.selector, Issuance.State.CLEARING_PENDING, Issuance.State.COMMIT_OPEN
+            )
+        );
+        issuance.cancelStalledClearing();
+    }
+
+    function test_cancelStalledClearing_revertsBeforeTimeoutElapses() public {
+        _deploy(100, 1, 5_000, 2);
+        _commit(1, 60, 10);
+        vm.warp(commitWindowEnd);
+        issuance.closeCommitWindow();
+        _reveal(1, 60, 10);
+        vm.warp(revealWindowEnd);
+        issuance.closeRevealWindow();
+
+        vm.expectRevert(Issuance.ClearingPendingStillOpen.selector);
+        issuance.cancelStalledClearing();
+
+        vm.warp(revealWindowEnd + issuance.CLEARING_PENDING_TIMEOUT() - 1);
+        vm.expectRevert(Issuance.ClearingPendingStillOpen.selector);
+        issuance.cancelStalledClearing();
+    }
+
+    function test_cancelStalledClearing_doesNotBlockAProposalMadeInTime() public {
+        _setUpToChallengeOpenWithCorrectClearing();
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Issuance.WrongState.selector, Issuance.State.CLEARING_PENDING, Issuance.State.CHALLENGE_OPEN
+            )
+        );
+        issuance.cancelStalledClearing();
+    }
+
+    function test_cancelStalledClearing_thenCancelUnresolvedRefundsEveryoneNoMint() public {
+        _deploy(100, 10, 5_000, 5);
+        _commit(1, 20, 15);
+        _commit(2, 20, 12);
+        vm.warp(commitWindowEnd);
+        issuance.closeCommitWindow();
+        _reveal(1, 20, 15);
+        _reveal(2, 20, 12);
+        vm.warp(revealWindowEnd);
+        issuance.closeRevealWindow();
+
+        vm.warp(revealWindowEnd + issuance.CLEARING_PENDING_TIMEOUT());
+
+        vm.expectEmit(false, false, false, true);
+        emit Issuance.ClearingPendingTimedOut();
+        issuance.cancelStalledClearing();
+        assertEq(uint256(issuance.state()), uint256(Issuance.State.CANCELLED));
+
+        address bidder1 = vm.addr(1);
+        address bidder2 = vm.addr(2);
+        uint256 bidder1BalanceBefore = paymentToken.balanceOf(bidder1);
+        uint256 bidder2BalanceBefore = paymentToken.balanceOf(bidder2);
+
+        vm.expectEmit(true, false, false, true);
+        emit Issuance.Cancelled(address(0));
+        issuance.cancelUnresolved();
+
+        assertEq(issuance.claimable(bidder1), 20 * 15);
+        assertEq(issuance.claimable(bidder2), 20 * 12);
+
+        vm.prank(bidder1);
+        issuance.claim();
+        vm.prank(bidder2);
+        issuance.claim();
+
+        assertEq(paymentToken.balanceOf(bidder1), bidder1BalanceBefore + 20 * 15);
+        assertEq(paymentToken.balanceOf(bidder2), bidder2BalanceBefore + 20 * 12);
+        assertEq(securityToken.totalSupply(), 0);
+        assertEq(paymentToken.balanceOf(address(issuance)), 0);
+    }
+
     function test_cancelUnresolved_revertsWhenCalledTwice() public {
         _deploy(100, 10, 5_000, 5);
         _commit(1, 20, 15);

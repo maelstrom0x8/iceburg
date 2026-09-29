@@ -19,6 +19,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
     // clearing proposal. Bounds the otherwise-unbounded "finite but not
     // fast" tournament-termination argument to a concrete wall-clock limit.
     uint64 public constant MAX_CHALLENGE_HORIZON = 30 days;
+    uint64 public constant CLEARING_PENDING_TIMEOUT = 7 days;
 
     enum State {
         COMMIT_OPEN,
@@ -102,6 +103,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
     error IssuerCannotBid();
     error ChallengeHorizonElapsed();
     error NonConservativeToken(uint256 expected, uint256 received);
+    error ClearingPendingStillOpen();
 
     event IssuanceCreated(
         address indexed issuer,
@@ -132,6 +134,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
         uint256 slashedBond
     );
     event ChallengeWindowClosed(State finalState);
+    event ClearingPendingTimedOut();
     event WinnerSettled(address indexed bidder, uint256 allocation, uint256 payment, uint256 refund);
     event NonWinnerRefunded(address indexed bidder, uint256 refund);
     event Settled(address indexed finalProposer, uint256 clearingPrice, uint256 bidCount);
@@ -553,6 +556,16 @@ contract Issuance is ReentrancyGuard, EIP712 {
         emit UnresolvedClaimProposed(msg.sender, bond);
 
         _pullExact(IERC20(_params.paymentToken), msg.sender, bond);
+    }
+
+    function cancelStalledClearing() external {
+        if (state != State.CLEARING_PENDING) revert WrongState(State.CLEARING_PENDING, state);
+        if (block.timestamp < _params.revealWindowEnd + CLEARING_PENDING_TIMEOUT) {
+            revert ClearingPendingStillOpen();
+        }
+
+        state = State.CANCELLED;
+        emit ClearingPendingTimedOut();
     }
 
     function challengeClearing(uint256 clearingPrice, uint256[] calldata allocations, uint256 bond)
