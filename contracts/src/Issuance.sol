@@ -101,6 +101,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
     error SamePriceTierSplit(uint256 bidIndexA, uint256 bidIndexB);
     error IssuerCannotBid();
     error ChallengeHorizonElapsed();
+    error NonConservativeToken(uint256 expected, uint256 received);
 
     event IssuanceCreated(
         address indexed issuer,
@@ -262,7 +263,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
 
         emit BidCommitted(msg.sender, commitment, bond);
 
-        IERC20(_params.paymentToken).safeTransferFrom(msg.sender, address(this), bond);
+        _pullExact(IERC20(_params.paymentToken), msg.sender, bond);
     }
 
     function closeCommitWindow() external {
@@ -312,7 +313,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
         emit BidRevealed(msg.sender, qty, price);
 
         IERC20 token = IERC20(_params.paymentToken);
-        token.safeTransferFrom(msg.sender, address(this), escrow);
+        _pullExact(token, msg.sender, escrow);
         if (bond > 0) token.safeTransfer(msg.sender, bond);
     }
 
@@ -360,6 +361,13 @@ contract Issuance is ReentrancyGuard, EIP712 {
             if (attestors[i] == signer) return true;
         }
         return false;
+    }
+
+    function _pullExact(IERC20 token, address from, uint256 amount) private {
+        uint256 before = token.balanceOf(address(this));
+        token.safeTransferFrom(from, address(this), amount);
+        uint256 received = token.balanceOf(address(this)) - before;
+        if (received != amount) revert NonConservativeToken(amount, received);
     }
 
     function verifyClearing(uint256 clearingPrice, uint256[] calldata allocations)
@@ -516,7 +524,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
 
         emit ClearingProposed(msg.sender, clearingPrice, totalAllocated, bond);
 
-        IERC20(_params.paymentToken).safeTransferFrom(msg.sender, address(this), bond);
+        _pullExact(IERC20(_params.paymentToken), msg.sender, bond);
     }
 
     function proposeUnresolvedClearing(uint256 bond) external nonReentrant {
@@ -536,7 +544,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
 
         emit UnresolvedClaimProposed(msg.sender, bond);
 
-        IERC20(_params.paymentToken).safeTransferFrom(msg.sender, address(this), bond);
+        _pullExact(IERC20(_params.paymentToken), msg.sender, bond);
     }
 
     function challengeClearing(uint256 clearingPrice, uint256[] calldata allocations, uint256 bond)
@@ -571,7 +579,7 @@ contract Issuance is ReentrancyGuard, EIP712 {
         emit ClearingChallenged(msg.sender, clearingPrice, totalAllocated, bond, beatenProposer, beatenBond);
 
         IERC20 token = IERC20(_params.paymentToken);
-        token.safeTransferFrom(msg.sender, address(this), bond);
+        _pullExact(token, msg.sender, bond);
         if (beatenBond > 0) token.safeTransfer(msg.sender, beatenBond);
     }
 
