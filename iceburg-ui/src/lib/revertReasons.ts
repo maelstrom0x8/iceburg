@@ -43,6 +43,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   OwnableUnauthorizedAccount: "The connected wallet isn't authorized to perform this action.",
   AttestorAlreadyApproved: "This address is already an approved attestor.",
   AttestorNotApproved: "This address isn't an approved attestor.",
+  ClearingPendingStillOpen: "The proposal window hasn't timed out yet — check back later.",
+  ChallengeHorizonElapsed: "The challenge period for this offering has run its full course.",
+  NonConservativeToken: "This payment token didn't transfer the expected amount — it may charge a fee on transfer.",
 };
 
 export function getRevertReason(error: unknown): string {

@@ -171,8 +171,8 @@ export function SettledPanel() {
             Offering Cancelled
           </h3>
           <p className="text-sm" style={{ color: "var(--color-app-muted)" }}>
-            This offering was cancelled because no valid clearing proposal could be resolved or
-            an unresolved claim was accepted.
+            This offering was cancelled — either no valid clearing proposal could ever satisfy
+            its requirements, or nobody submitted one before the proposal window timed out.
             {finalized
               ? " All bidder escrow and bonds are available for claim below."
               : " Once finalized, bidder escrow and bonds will be available to claim below."}
