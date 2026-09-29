@@ -22,7 +22,7 @@ export function ClearingWorkbench() {
 
   const { address: walletAddress } = useAccount();
   const { issuances: allIssuances } = useIssuances();
-  const validAddress = isAddress(selectedAddress) ? (selectedAddress as `0x${string}`) : undefined;
+  const validAddress = isAddress(selectedAddress) ? selectedAddress : undefined;
   const { isTrusted: targetIsTrusted, isLoading: trustLoading } = useIsTrustedIssuance(validAddress);
 
   const issuanceState = useIssuanceState(validAddress || zeroAddress, walletAddress);

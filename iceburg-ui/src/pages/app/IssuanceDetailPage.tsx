@@ -85,7 +85,7 @@ function DetailPageHeader({ address }: { address: `0x${string}` }) {
 
 export function IssuanceDetailPage() {
   const { address } = useParams<{ address: string }>();
-  const validAddress = address && isAddress(address) ? (address as `0x${string}`) : undefined;
+  const validAddress = address && isAddress(address) ? address : undefined;
   const { isTrusted, isLoading: checkingTrust } = useIsTrustedIssuance(validAddress);
 
   if (!validAddress) {

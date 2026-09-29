@@ -42,13 +42,17 @@ export function useMyIssuances(issuerAddress: `0x${string}` | undefined): {
         strict: false,
       });
 
+      // strict: false tolerates a log that doesn't fully decode rather than
+      // throwing — skip any that came through without the indexed address
+      // fields a real IssuanceCreated log always carries.
       return parsed
+        .filter((log) => log.args.issuance && log.args.securityToken && log.args.issuer)
         .map((log) => ({
           issuanceAddress: log.args.issuance as `0x${string}`,
           securityTokenAddress: log.args.securityToken as `0x${string}`,
           issuer: log.args.issuer as `0x${string}`,
-          tokenName: (log.args.tokenName as string) ?? "",
-          tokenSymbol: (log.args.tokenSymbol as string) ?? "",
+          tokenName: log.args.tokenName ?? "",
+          tokenSymbol: log.args.tokenSymbol ?? "",
           blockNumber: log.blockNumber ?? 0n,
         }));
     },

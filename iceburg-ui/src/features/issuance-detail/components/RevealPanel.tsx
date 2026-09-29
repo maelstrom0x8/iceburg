@@ -95,9 +95,9 @@ export function RevealPanel() {
           args: [
             BigInt(qty),
             BigInt(price),
-            salt as `0x${string}`,
+            salt,
             expiry,
-            attestationSignature as `0x${string}`,
+            attestationSignature,
           ],
         });
         await publicClient.waitForTransactionReceipt({ hash });

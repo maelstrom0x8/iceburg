@@ -46,12 +46,14 @@ export function useIssuanceBids(
   const count = exceedsMaxBids ? 0 : rawCount;
 
   const { data: rawBids, isLoading: bidsLoading, error: readError } = useReadContracts({
-    contracts: Array.from({ length: count }, (_, i) => ({
-      address: issuanceAddress as `0x${string}`,
-      abi: IssuanceAbi,
-      functionName: "bidAt" as const,
-      args: [BigInt(i)] as const,
-    })),
+    contracts: issuanceAddress
+      ? Array.from({ length: count }, (_, i) => ({
+          address: issuanceAddress,
+          abi: IssuanceAbi,
+          functionName: "bidAt" as const,
+          args: [BigInt(i)] as const,
+        }))
+      : [],
     query: {
       enabled: count > 0 && !!issuanceAddress,
       refetchInterval: 12_000,
