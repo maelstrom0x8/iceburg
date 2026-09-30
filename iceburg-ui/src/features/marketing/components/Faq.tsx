@@ -1,23 +1,23 @@
 const ENTRIES = [
   {
     q: "How is the price computed?",
-    a: "From the revealed bids, against the terms the issuer fixed before bidding opened. Anyone can run the same published computation and check the result — it isn't a person's judgment call.",
+    a: "From the confirmed bids, against the terms the issuer fixed before bidding opened. Anyone can run the same computation and check the outcome — it isn't a person's judgment call. In the example offering, demand alone crosses supply at $7.00, but that would leave too few distinct holders — the floor pulls the price down to admit one more, landing at $6.50.",
   },
   {
     q: "What if I'm not filled?",
-    a: "Your full escrow is refunded automatically. Nothing is held back, and there's no manual step where someone has to decide to return it.",
+    a: "Your full deposit is refunded automatically. Nothing is held back, and there's no manual step where someone has to decide to return it.",
   },
   {
-    q: "Can the issuer change the rules after bidding starts?",
-    a: "No. Reserve price, the per-bidder cap, and the minimum-holder requirement are fixed at creation and can't be loosened afterward, no matter what the bids turn out to look like.",
+    q: "Can the issuer change the terms after bidding starts?",
+    a: "No. Floor price, the concentration cap, and the holder minimum are fixed at launch and can't be loosened afterward, no matter what the bids look like.",
   },
   {
-    q: "What happens if a result looks wrong?",
-    a: "During a review window, anyone can submit a better result and get paid the stake the original, worse proposal had to post. Only a result nobody manages to beat within that window settles.",
+    q: "What happens if an outcome looks wrong?",
+    a: "During the challenge window, anyone can submit a better outcome and earn the deposit posted by the original proposal. Only an outcome nobody manages to beat within that window settles.",
   },
   {
     q: "Who decides if I'm allowed to bid?",
-    a: "Iceburg decides price and allocation. It doesn't decide who's eligible to bid — that's a separate check the issuer requires before a bid can be revealed.",
+    a: "Iceburg computes the price and allocations. It doesn't decide eligibility — that's a check handled by an approved compliance partner before a bid can be confirmed.",
   },
 ];
 

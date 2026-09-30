@@ -101,14 +101,14 @@ export function About() {
         </section>
 
         {/* Section 3: Why Iceburg */}
-        <section className="py-20" style={{ background: "#0d0e11" }}>
+        <section className="py-20" style={{ background: "var(--color-app-surface-2)" }}>
           <div className="mx-auto max-w-4xl px-4 sm:px-6">
             <Reveal className="text-center">
               <span className="text-xs font-semibold uppercase tracking-wide text-accent">Our Principles</span>
-              <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl" style={{ color: "#f0f2f5" }}>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl" style={{ color: "var(--color-app-text)" }}>
                 Why Iceburg
               </h2>
-              <p className="mt-3 text-sm max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.6)" }}>
+              <p className="mt-3 text-sm max-w-xl mx-auto" style={{ color: "var(--color-app-muted)" }}>
                 The core convictions that shape our organization, product design, and system model.
               </p>
             </Reveal>
@@ -118,13 +118,13 @@ export function About() {
                 <StaggerItem
                   key={pillar.title}
                   className="flex flex-col justify-between rounded-xl p-6"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                  style={{ background: "var(--color-app-surface)", border: "1px solid var(--color-app-border)" }}
                 >
                   <div>
-                    <h3 className="text-lg font-semibold" style={{ color: "#f0f2f5" }}>
+                    <h3 className="text-lg font-semibold" style={{ color: "var(--color-app-text)" }}>
                       {pillar.title}
                     </h3>
-                    <p className="mt-3 text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
+                    <p className="mt-3 text-xs leading-relaxed" style={{ color: "var(--color-app-muted)" }}>
                       {pillar.description}
                     </p>
                   </div>

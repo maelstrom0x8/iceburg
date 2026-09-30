@@ -49,6 +49,14 @@ function AboutLink({ className }: { className?: string }) {
   );
 }
 
+function OfferingsLink({ className }: { className?: string }) {
+  return (
+    <a href={`${APP_URL}/issuances`} className={className ?? NAV_LINK_CLASSES}>
+      Offerings
+    </a>
+  );
+}
+
 function UseIcebergButton({ layoutClassName }: { layoutClassName: string }) {
   return (
     <a href={APP_URL} className={`${layoutClassName} ${USE_ICEBURG_BASE_CLASSES}`}>
@@ -79,16 +87,25 @@ export function Navbar() {
   }
 
   return (
-    <header className={`sticky top-0 z-50 border-b border-app-border bg-app-surface/80 backdrop-blur transition-shadow${scrolled ? " shadow-md shadow-black/10 dark:shadow-black/40" : ""}`}>
+    <header
+      className={`fixed inset-x-0 top-0 z-50 border-b transition-colors ${
+        scrolled
+          ? "border-app-border bg-app-surface/80 backdrop-blur shadow-md shadow-black/10 dark:shadow-black/40"
+          : "border-transparent bg-transparent"
+      }`}
+    >
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6" aria-label="Primary">
-        <Link to="/" className={`flex items-center gap-2 rounded-md ${FOCUS_RING}`}>
-          <IcebergMark />
-          <span className="text-lg font-semibold tracking-tight text-app-text">Iceburg</span>
-        </Link>
+        <div className="flex items-center gap-6">
+          <Link to="/" className={`flex items-center gap-2 rounded-md ${FOCUS_RING}`}>
+            <IcebergMark />
+            <span className="text-lg font-semibold tracking-tight text-app-text">Iceburg</span>
+          </Link>
 
-        <div className="hidden items-center gap-1 md:flex">
-          <ResourcesMenu />
-          <AboutLink />
+          <div className="hidden items-center gap-1 md:flex">
+            <OfferingsLink />
+            <ResourcesMenu />
+            <AboutLink />
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -108,8 +125,9 @@ export function Navbar() {
       </nav>
 
       {mobileOpen && (
-        <div id="mobile-nav" className="border-t border-app-border px-4 pb-4 md:hidden">
+        <div id="mobile-nav" className="border-t border-app-border bg-app-surface px-4 pb-4 md:hidden">
           <div className="flex flex-col items-start gap-1 pt-2">
+            <OfferingsLink className={`w-full ${NAV_LINK_CLASSES}`} />
             <ResourcesMenu />
             <AboutLink className={`w-full ${NAV_LINK_CLASSES}`} />
             <UseIcebergButton layoutClassName="mt-2 w-full text-center" />
