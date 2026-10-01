@@ -74,6 +74,7 @@ function DetailPageHeader({ address }: { address: `0x${string}` }) {
           : "Sealed-Bid Offering"
       }
       description={`Contract: ${address.slice(0, 10)}...${address.slice(-8)}`}
+      backTo={{ label: "Back to Offerings", to: "/app/issuances" }}
       stats={[
         { label: "State", value: <StateBadge state={stateNum} /> },
         { label: "Reserve Price", value: reserveStr },
