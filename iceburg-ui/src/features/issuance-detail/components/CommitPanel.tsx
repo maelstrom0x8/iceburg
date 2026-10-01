@@ -90,9 +90,16 @@ export function CommitPanel() {
         const sponsoredClient = await getSponsoredClient();
         return sponsoredClient.writeContract({ ...params, chain: undefined });
       }
-      return writeContractAsync(params);
+      if (!publicClient) return writeContractAsync(params);
+
+      const { maxFeePerGas, maxPriorityFeePerGas } = await publicClient.estimateFeesPerGas();
+      return writeContractAsync({
+        ...params,
+        maxFeePerGas: (maxFeePerGas * 125n) / 100n,
+        maxPriorityFeePerGas: (maxPriorityFeePerGas * 125n) / 100n,
+      });
     },
-    [sponsoredGas, getSponsoredClient, writeContractAsync],
+    [sponsoredGas, getSponsoredClient, writeContractAsync, publicClient],
   );
 
   const { data: currentAllowance } = useReadContract({
