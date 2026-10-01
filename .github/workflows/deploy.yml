@@ -1,0 +1,33 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: iceburg-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: iceburg-ui/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm test
+      - run: npm i -g vercel@latest
+      - name: Deploy marketing
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: ./deploy.sh marketing
+      - name: Deploy app
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: ./deploy.sh app

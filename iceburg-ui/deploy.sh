@@ -21,6 +21,9 @@ set -euo pipefail
 # (see src/config/urls.ts) — override with env vars if the deployed URLs
 # ever change:
 #   VITE_MARKETING_URL=https://... VITE_APP_URL=https://... ./deploy.sh app
+#
+# Picks up VERCEL_TOKEN from the environment if set (CI), otherwise relies
+# on an interactively-logged-in local Vercel CLI session, same as before.
 
 TARGET="${1:-}"
 
@@ -33,6 +36,11 @@ cd "$(dirname "$0")"
 
 MARKETING_URL="${VITE_MARKETING_URL:-https://iceburg-marketing.vercel.app}"
 APP_URL="${VITE_APP_URL:-https://iceburg-app.vercel.app}"
+
+VERCEL_ARGS=(--scope iohaus)
+if [[ -n "${VERCEL_TOKEN:-}" ]]; then
+  VERCEL_ARGS+=(--token "$VERCEL_TOKEN")
+fi
 
 if [[ "$TARGET" == "app" ]]; then
   PROJECT="iceburg-app"
@@ -52,7 +60,8 @@ DEPLOY_OUTPUT=$(vercel deploy \
   --target preview \
   --build-env "$BUILD_ENV" \
   --yes \
-  --json)
+  --json \
+  "${VERCEL_ARGS[@]}")
 
 DEPLOYMENT_URL=$(echo "$DEPLOY_OUTPUT" | jq -r '.deployment.url // .url')
 DEPLOYMENT_URL="${DEPLOYMENT_URL#https://}"
@@ -65,6 +74,6 @@ fi
 
 echo "Deployed: https://${DEPLOYMENT_URL}"
 
-vercel alias set "https://${DEPLOYMENT_URL}" "$ALIAS_HOST"
+vercel alias set "https://${DEPLOYMENT_URL}" "$ALIAS_HOST" "${VERCEL_ARGS[@]}"
 
 echo "Aliased: https://${ALIAS_HOST}"
