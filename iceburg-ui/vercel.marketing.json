@@ -1,5 +1,0 @@
-{
-  "buildCommand": "npm run build:marketing",
-  "outputDirectory": "dist-marketing",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
-}

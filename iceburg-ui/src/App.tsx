@@ -6,19 +6,11 @@ import { ActivityPage } from "./pages/app/ActivityPage";
 import { IssuePage } from "./pages/app/IssuePage";
 import { ClearingPage } from "./pages/app/ClearingPage";
 
-/**
- * The application — its own build (`app/index.html` via `main.app.tsx`),
- * deployed as its own Vercel project on the `app.` subdomain. Mounted at
- * "/" here (not "/app") since it owns its own origin now; the marketing
- * site links here with an absolute cross-origin URL (src/config/urls.ts),
- * never a React Router <Link>.
- */
 function App() {
   return (
     <Routes>
       <Route path="/" element={<AppLayout />}>
-        {/* Default to issuances tab */}
-        <Route index element={<Navigate to="/issuances" replace />} />
+        <Route index element={<Navigate to="/app/issuances" replace />} />
         <Route path="issuances" element={<IssuancesPage />} />
         <Route path="issuances/:address" element={<IssuanceDetailPage />} />
         <Route path="activity" element={<ActivityPage />} />

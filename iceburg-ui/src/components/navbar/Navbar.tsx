@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { ResourcesMenu } from "./ResourcesMenu";
-import { APP_URL } from "../../config/urls";
 
 const FOCUS_RING = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent";
 
@@ -51,17 +50,17 @@ function AboutLink({ className }: { className?: string }) {
 
 function OfferingsLink({ className }: { className?: string }) {
   return (
-    <a href={`${APP_URL}/issuances`} className={className ?? NAV_LINK_CLASSES}>
+    <Link to="/app/issuances" className={className ?? NAV_LINK_CLASSES}>
       Offerings
-    </a>
+    </Link>
   );
 }
 
 function UseIcebergButton({ layoutClassName }: { layoutClassName: string }) {
   return (
-    <a href={APP_URL} className={`${layoutClassName} ${USE_ICEBURG_BASE_CLASSES}`}>
+    <Link to="/app" className={`${layoutClassName} ${USE_ICEBURG_BASE_CLASSES}`}>
       Use Iceburg
-    </a>
+    </Link>
   );
 }
 

@@ -1,30 +1,28 @@
-import { Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { MarketingLayout } from "./components/layout/MarketingLayout";
+import { About } from "./pages/About";
 import { Home } from "./pages/Home";
 import { StatusPage } from "./pages/StatusPage";
+import { hasSeenLanding, markLandingSeen } from "./lib/landingGate";
 
-/**
- * The marketing site — its own build (`app/index.html` is the app's build,
- * this is the default `index.html` entry via `main.tsx`), deployed as its
- * own Vercel project on the bare domain. Never imports anything from
- * wagmi/viem/RainbowKit or the /app surface — that's the whole point of
- * the split (see src/config/urls.ts for how the two link to each other).
- */
+function LandingGate() {
+  const alreadySeen = hasSeenLanding();
+
+  useEffect(() => {
+    if (!alreadySeen) markLandingSeen();
+  }, [alreadySeen]);
+
+  if (alreadySeen) return <Navigate to="/app" replace />;
+  return <Home />;
+}
+
 function MarketingApp() {
   return (
     <Routes>
       <Route element={<MarketingLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route
-          path="/about"
-          element={
-            <StatusPage
-              eyebrow="About"
-              title="About Iceburg"
-              description="More about our team and mission is coming soon."
-            />
-          }
-        />
+        <Route path="/" element={<LandingGate />} />
+        <Route path="/about" element={<About />} />
         <Route
           path="/faq"
           element={

@@ -1,6 +1,5 @@
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { WalletButton } from "../ui/WalletButton";
-import { MARKETING_URL } from "../../config/urls";
 
 interface Tab {
   to: string;
@@ -8,10 +7,10 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  { to: "/issuances", label: "Offerings" },
-  { to: "/activity", label: "My Activity" },
-  { to: "/issue", label: "Issue" },
-  { to: "/clearing", label: "Clearing" },
+  { to: "/app/issuances", label: "Offerings" },
+  { to: "/app/activity", label: "My Activity" },
+  { to: "/app/issue", label: "Issue" },
+  { to: "/app/clearing", label: "Clearing" },
 ];
 
 function IcebergMark() {
@@ -33,9 +32,8 @@ export function AppTopBar() {
       }}
     >
       <div className="mx-auto flex h-[52px] max-w-screen-xl items-center gap-6 px-6">
-        {/* Wordmark — links back to the marketing site, a different origin now */}
-        <a
-          href={MARKETING_URL}
+        <Link
+          to="/"
           className="flex items-center gap-2 shrink-0"
         >
           <IcebergMark />
@@ -45,7 +43,7 @@ export function AppTopBar() {
           >
             Iceburg
           </span>
-        </a>
+        </Link>
 
         {/* Tab nav — fills remaining space, left-aligned */}
         <nav className="flex flex-1 items-stretch h-[52px] gap-0.5" aria-label="App navigation">

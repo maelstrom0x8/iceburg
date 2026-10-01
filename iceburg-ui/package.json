@@ -5,13 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:app": "vite --config vite.app.config.ts",
-    "build": "npm run build:marketing && npm run build:app",
-    "build:marketing": "tsc -b && vite build --config vite.marketing.config.ts",
-    "build:app": "tsc -b && vite build --config vite.app.config.ts",
+    "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview --outDir dist-marketing",
-    "preview:app": "vite preview --config vite.app.config.ts",
+    "preview": "vite preview",
     "test": "vitest run"
   },
   "dependencies": {

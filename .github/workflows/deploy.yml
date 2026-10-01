@@ -24,11 +24,7 @@ jobs:
       - run: npm run build
       - run: npm test
       - run: npm i -g vercel@latest
-      - name: Deploy marketing
+      - name: Deploy
         env:
           VERCEL_ICEBURG_TOKEN: ${{ secrets.VERCEL_ICEBURG_TOKEN }}
-        run: ./deploy.sh marketing
-      - name: Deploy app
-        env:
-          VERCEL_ICEBURG_TOKEN: ${{ secrets.VERCEL_ICEBURG_TOKEN }}
-        run: ./deploy.sh app
+        run: ./deploy.sh

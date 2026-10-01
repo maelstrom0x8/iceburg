@@ -107,7 +107,7 @@ export function ChallengePanel() {
         )}
 
         <Link
-          to={`/clearing?issuance=${address}`}
+          to={`/app/clearing?issuance=${address}`}
           className="px-5 py-2.5 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-colors inline-flex items-center gap-2"
         >
           <span>Challenge Standing Proposal</span>

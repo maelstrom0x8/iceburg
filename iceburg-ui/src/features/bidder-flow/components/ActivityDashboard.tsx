@@ -58,7 +58,7 @@ function IssuanceCard({ summary }: { summary: IssuanceSummary }) {
 
   return (
     <Link
-      to={`/issuances/${summary.issuanceAddress}`}
+      to={`/app/issuances/${summary.issuanceAddress}`}
       className="p-4 rounded-xl transition-colors space-y-3 block hover:bg-[var(--color-app-surface-2)]"
       style={{ background: "var(--color-app-surface)", border: "1px solid var(--color-app-border)" }}
     >
@@ -111,7 +111,7 @@ export function ActivityDashboard() {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold" style={{ color: "var(--color-app-text)" }}>Created Offerings ({myIssuances.length})</h2>
           <Link
-            to="/issue"
+            to="/app/issue"
             className="text-xs font-medium hover:underline"
             style={{ color: "var(--color-accent)" }}
           >
@@ -149,7 +149,7 @@ export function ActivityDashboard() {
             {myBids.map((bid) => (
               <Link
                 key={bid.issuanceSummary.issuanceAddress}
-                to={`/issuances/${bid.issuanceSummary.issuanceAddress}`}
+                to={`/app/issuances/${bid.issuanceSummary.issuanceAddress}`}
                 className="p-4 rounded-xl transition-colors space-y-3 block hover:bg-[var(--color-app-surface-2)]"
                 style={{ background: "var(--color-app-surface)", border: "1px solid var(--color-app-border)" }}
               >

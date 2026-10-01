@@ -74,7 +74,7 @@ function IssuanceRow({
     >
       <td className={TD}>
         <Link
-          to={`/issuances/${issuanceAddress}`}
+          to={`/app/issuances/${issuanceAddress}`}
           className="absolute inset-0 z-10"
           aria-label={`View ${tokenName} offering`}
         />
@@ -158,7 +158,7 @@ export function IssuanceTable() {
           No sealed-bid auctions have been deployed on this network.
         </p>
         <Link
-          to="/issue"
+          to="/app/issue"
           className="inline-flex items-center gap-2 mt-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
           style={{ background: "var(--color-accent)" }}
         >

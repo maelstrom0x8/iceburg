@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import type { ReactNode } from "react";
-import { APP_URL } from "../../../config/urls";
+import { Link } from "react-router-dom";
 import { FramedDeviceMock } from "./FramedDeviceMock";
 import { EmptyLaunchFormMock } from "./EmptyLaunchFormMock";
 import { DemandCurveChart } from "./DemandCurveChart";
@@ -55,7 +55,6 @@ interface CarouselSlide {
   subhead: string;
   ctaLabel: string;
   ctaHref: string;
-  ctaExternal?: boolean;
   visual: ReactNode;
 }
 
@@ -69,7 +68,7 @@ const SLIDES: CarouselSlide[] = [
     subhead:
       "Set the reserve price, the cap, and the holder floor once — nothing about them can move after bidding opens.",
     ctaLabel: "Launch an offering",
-    ctaHref: `${APP_URL}/issue`,
+    ctaHref: "/app/issue",
     visual: (
       <FramedDeviceMock>
         <EmptyLaunchFormMock />
@@ -85,7 +84,7 @@ const SLIDES: CarouselSlide[] = [
     subhead:
       "Nobody sees your bid first, including the issuer. Once bidding closes, anyone can check exactly how the result was reached.",
     ctaLabel: "View active offerings",
-    ctaHref: `${APP_URL}/issuances`,
+    ctaHref: "/app/issuances",
     visual: (
       <FramedDeviceMock>
         <DemandCurveChart />
@@ -128,14 +127,9 @@ export function HeroCarousel() {
             {active.subhead}
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <a
-              href={active.ctaHref}
-              className={PRIMARY_BUTTON}
-              target={active.ctaExternal ? "_blank" : undefined}
-              rel={active.ctaExternal ? "noopener noreferrer" : undefined}
-            >
+            <Link to={active.ctaHref} className={PRIMARY_BUTTON}>
               {active.ctaLabel}
-            </a>
+            </Link>
           </div>
         </div>
 

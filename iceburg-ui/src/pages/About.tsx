@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { MotionConfig } from "motion/react";
-import { APP_URL } from "../config/urls";
+import { Link } from "react-router-dom";
 import { Reveal, StaggerGroup, StaggerItem } from "../features/marketing/components/Reveal";
 
 const PRIMARY_BUTTON =
@@ -63,9 +63,9 @@ export function About() {
               Iceburg is an organization dedicated to removing private bias from first sales. We build tools that let issuers and participants conduct offerings on clear, unchangeable terms.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <a href={`${APP_URL}/issuances`} className={PRIMARY_BUTTON}>
+              <Link to="/app/issuances" className={PRIMARY_BUTTON}>
                 Use Iceburg
-              </a>
+              </Link>
               <a
                 href="mailto:contact@iceburg.io"
                 className={SECONDARY_BUTTON}
