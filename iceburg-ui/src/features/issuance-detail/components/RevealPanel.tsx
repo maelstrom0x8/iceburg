@@ -1,9 +1,10 @@
 import { useState, useCallback } from "react";
 import { useAccount, useWriteContract, usePublicClient } from "wagmi";
-import { isHex } from "viem";
+import { isHex, type Abi } from "viem";
 import { IssuanceAbi } from "../../../contracts";
 import { useIssuanceContext } from "../context/IssuanceContext";
 import { getRevertReason } from "../../../lib/revertReasons";
+import { waitForSuccessfulReceipt } from "../../../lib/waitForSuccessfulReceipt";
 
 // ── Local storage helpers ─────────────────────────────────────────────────────
 
@@ -88,9 +89,9 @@ export function RevealPanel() {
         const expiry = BigInt(attestationExpiry);
 
         setPhase("revealing");
-        const hash = await writeContractAsync({
+        const callParams = {
           address: issuanceAddress,
-          abi: IssuanceAbi,
+          abi: IssuanceAbi as Abi,
           functionName: "revealBid",
           args: [
             BigInt(qty),
@@ -99,8 +100,9 @@ export function RevealPanel() {
             expiry,
             attestationSignature,
           ],
-        });
-        await publicClient.waitForTransactionReceipt({ hash });
+        };
+        const hash = await writeContractAsync(callParams);
+        await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
         setTxHash(hash);
         setPhase("done");
       } catch (err) {

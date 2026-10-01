@@ -1,11 +1,13 @@
 import { useAccount, useReadContract, useWriteContract, usePublicClient } from "wagmi";
 import { useState, useCallback } from "react";
+import type { Abi } from "viem";
 import { IssuanceAbi, SecurityTokenAbi } from "../../../contracts";
 import { useIssuanceContext } from "../context/IssuanceContext";
 import { formatAmount, formatPrice } from "../../../lib/format";
 import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
 import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
 import { getRevertReason } from "../../../lib/revertReasons";
+import { waitForSuccessfulReceipt } from "../../../lib/waitForSuccessfulReceipt";
 
 const INSET = {
   background: "var(--color-app-surface-2)",
@@ -35,23 +37,20 @@ function ClaimSection({ issuanceAddress }: { issuanceAddress: `0x${string}` }) {
   });
 
   const handleClaim = useCallback(async () => {
-    if (!publicClient) return;
+    if (!publicClient || !walletAddress) return;
     setClaiming(true);
     setErrorMsg(null);
     try {
-      const hash = await writeContractAsync({
-        address: issuanceAddress,
-        abi: IssuanceAbi,
-        functionName: "claim",
-      });
-      await publicClient.waitForTransactionReceipt({ hash });
+      const callParams = { address: issuanceAddress, abi: IssuanceAbi as Abi, functionName: "claim" };
+      const hash = await writeContractAsync(callParams);
+      await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
       await refetchClaimable();
     } catch (err) {
       setErrorMsg(getRevertReason(err));
     } finally {
       setClaiming(false);
     }
-  }, [issuanceAddress, publicClient, refetchClaimable, writeContractAsync]);
+  }, [issuanceAddress, publicClient, walletAddress, refetchClaimable, writeContractAsync]);
 
   if (!walletAddress) {
     return (
@@ -123,42 +122,36 @@ export function SettledPanel() {
   const isCancelled = state === 5;
 
   const handleCancelUnresolved = useCallback(async () => {
-    if (!publicClient) return;
+    if (!publicClient || !walletAddress) return;
     setActing(true);
     setErrorMsg(null);
     try {
-      const hash = await writeContractAsync({
-        address,
-        abi: IssuanceAbi,
-        functionName: "cancelUnresolved",
-      });
-      await publicClient.waitForTransactionReceipt({ hash });
+      const callParams = { address, abi: IssuanceAbi as Abi, functionName: "cancelUnresolved" };
+      const hash = await writeContractAsync(callParams);
+      await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
       await refetch();
     } catch (err) {
       setErrorMsg(getRevertReason(err));
     } finally {
       setActing(false);
     }
-  }, [address, publicClient, refetch, writeContractAsync]);
+  }, [address, publicClient, walletAddress, refetch, writeContractAsync]);
 
   const handleSettle = useCallback(async () => {
-    if (!publicClient) return;
+    if (!publicClient || !walletAddress) return;
     setActing(true);
     setErrorMsg(null);
     try {
-      const hash = await writeContractAsync({
-        address,
-        abi: IssuanceAbi,
-        functionName: "settle",
-      });
-      await publicClient.waitForTransactionReceipt({ hash });
+      const callParams = { address, abi: IssuanceAbi as Abi, functionName: "settle" };
+      const hash = await writeContractAsync(callParams);
+      await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
       await refetch();
     } catch (err) {
       setErrorMsg(getRevertReason(err));
     } finally {
       setActing(false);
     }
-  }, [address, publicClient, refetch, writeContractAsync]);
+  }, [address, publicClient, walletAddress, refetch, writeContractAsync]);
 
   if (isCancelled) {
     return (

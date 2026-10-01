@@ -23,6 +23,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   BondTooLow: "The bond you provided is below the required minimum.",
   EmptyCommitment: "A commitment value is required.",
   AlreadyCommitted: "This address has already committed a bid for this offering.",
+  IssuerCannotBid: "The issuer's own wallet can't bid on its own offering — connect a different wallet.",
   MaxBidsReached: "This offering has reached its maximum number of bids.",
   NoCommitment: "No committed bid was found for this address.",
   CommitmentMismatch: "The revealed bid doesn't match the original sealed commitment.",

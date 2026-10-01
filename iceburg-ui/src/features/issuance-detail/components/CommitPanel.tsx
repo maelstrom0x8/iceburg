@@ -8,6 +8,7 @@ import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
 import { useSponsoredKernelClient } from "../../../hooks/useSponsoredKernelClient";
 import { formatPrice } from "../../../lib/format";
 import { getRevertReason } from "../../../lib/revertReasons";
+import { waitForSuccessfulReceipt } from "../../../lib/waitForSuccessfulReceipt";
 
 // ── Local storage key for stored bids ────────────────────────────────────────
 
@@ -135,13 +136,14 @@ export function CommitPanel() {
         if (allowance < totalNeeded) {
           if (!paymentTokenAddress) throw new Error("Payment token address not configured.");
           setPhase("approving");
-          const approveHash = await write({
+          const approveParams = {
             address: paymentTokenAddress,
-            abi: DemoUSDAbi,
+            abi: DemoUSDAbi as Abi,
             functionName: "approve",
             args: [issuanceAddress, totalNeeded],
-          });
-          await publicClient.waitForTransactionReceipt({ hash: approveHash });
+          };
+          const approveHash = await write(approveParams);
+          await waitForSuccessfulReceipt(publicClient, approveHash, approveParams, walletAddress);
         }
 
         const salt = generateSalt();
@@ -155,13 +157,14 @@ export function CommitPanel() {
         });
 
         setPhase("committing");
-        const hash = await write({
+        const commitParams = {
           address: issuanceAddress,
-          abi: IssuanceAbi,
+          abi: IssuanceAbi as Abi,
           functionName: "commitBid",
           args: [commitment, bond],
-        });
-        await publicClient.waitForTransactionReceipt({ hash });
+        };
+        const hash = await write(commitParams);
+        await waitForSuccessfulReceipt(publicClient, hash, commitParams, walletAddress);
 
         setTxHash(hash);
         setPhase("done");

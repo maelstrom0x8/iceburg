@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
-import { parseEventLogs, zeroAddress } from "viem";
+import { parseEventLogs, zeroAddress, type Abi } from "viem";
 import { IssuanceFactoryAbi, IssuanceFactoryAddressByChain, useContractAddress } from "../contracts";
 import { usePaymentTokenAddress } from "../config/paymentToken";
+import { waitForSuccessfulReceipt } from "../lib/waitForSuccessfulReceipt";
 
 export interface LaunchFormValues {
   supply: bigint;
@@ -52,9 +53,9 @@ export function useLaunchOffering(): {
           throw new Error("Payment token address is not configured for this network.");
         }
 
-        const hash = await writeContractAsync({
+        const callParams = {
           address: issuanceFactoryAddress,
-          abi: IssuanceFactoryAbi,
+          abi: IssuanceFactoryAbi as Abi,
           functionName: "createIssuance",
           args: [
             {
@@ -74,9 +75,10 @@ export function useLaunchOffering(): {
             form.tokenName,
             form.tokenSymbol,
           ],
-        });
+        };
+        const hash = await writeContractAsync(callParams);
 
-        const receipt = await publicClient.waitForTransactionReceipt({ hash });
+        const receipt = await waitForSuccessfulReceipt(publicClient, hash, callParams, connectedAddress);
 
         const [created] = parseEventLogs({
           abi: IssuanceFactoryAbi,

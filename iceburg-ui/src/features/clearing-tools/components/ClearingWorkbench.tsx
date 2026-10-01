@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAccount, useReadContract, useWriteContract, usePublicClient } from "wagmi";
-import { isAddress, zeroAddress } from "viem";
+import { isAddress, zeroAddress, type Abi } from "viem";
 import { useIssuanceBids } from "../hooks/useIssuanceBids";
 import { useIssuanceState } from "../../issuance-detail/hooks/useIssuanceState";
 import { useIssuances } from "../../issuance-discovery/hooks/useIssuances";
@@ -14,6 +14,7 @@ import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
 import { StateBadge } from "../../../components/ui/StateBadge";
 import { formatAmount, formatPrice } from "../../../lib/format";
 import { getRevertReason } from "../../../lib/revertReasons";
+import { waitForSuccessfulReceipt } from "../../../lib/waitForSuccessfulReceipt";
 
 export function ClearingWorkbench() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -94,7 +95,7 @@ export function ClearingWorkbench() {
   }, [solverResult, bids]);
 
   const handleProposeClearing = useCallback(async () => {
-    if (!validAddress || !solverResult || !publicClient || !issuanceState.params) return;
+    if (!validAddress || !solverResult || !publicClient || !issuanceState.params || !walletAddress) return;
     if (!targetIsTrusted) {
       setTxError("This contract was not created by the Iceburg factory — refusing to approve or submit to it.");
       return;
@@ -106,33 +107,33 @@ export function ClearingWorkbench() {
       const minBond = issuanceState.params.minBond;
 
       if (minBond > 0n && paymentTokenAddress && (!bondAllowance || bondAllowance < minBond)) {
-        const appHash = await writeContractAsync({
+        const approveParams = {
           address: paymentTokenAddress,
-          abi: DemoUSDAbi,
+          abi: DemoUSDAbi as Abi,
           functionName: "approve",
           args: [validAddress, minBond * 10n],
-        });
-        await publicClient.waitForTransactionReceipt({ hash: appHash });
+        };
+        const appHash = await writeContractAsync(approveParams);
+        await waitForSuccessfulReceipt(publicClient, appHash, approveParams, walletAddress);
       }
 
-      let hash: `0x${string}`;
-      if (solverResult.kind === "unresolved") {
-        hash = await writeContractAsync({
-          address: validAddress,
-          abi: IssuanceAbi,
-          functionName: "proposeUnresolvedClearing",
-          args: [minBond],
-        });
-      } else {
-        hash = await writeContractAsync({
-          address: validAddress,
-          abi: IssuanceAbi,
-          functionName: "proposeClearing",
-          args: [solverResult.price, allocationsArray, minBond],
-        });
-      }
+      const callParams =
+        solverResult.kind === "unresolved"
+          ? {
+              address: validAddress,
+              abi: IssuanceAbi as Abi,
+              functionName: "proposeUnresolvedClearing",
+              args: [minBond],
+            }
+          : {
+              address: validAddress,
+              abi: IssuanceAbi as Abi,
+              functionName: "proposeClearing",
+              args: [solverResult.price, allocationsArray, minBond],
+            };
+      const hash = await writeContractAsync(callParams);
 
-      await publicClient.waitForTransactionReceipt({ hash });
+      await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
       await issuanceState.refetch();
     } catch (err) {
       setTxError(getRevertReason(err));
@@ -143,6 +144,7 @@ export function ClearingWorkbench() {
     validAddress,
     solverResult,
     publicClient,
+    walletAddress,
     issuanceState,
     bondAllowance,
     writeContractAsync,
@@ -152,7 +154,10 @@ export function ClearingWorkbench() {
   ]);
 
   const handleChallengeClearing = useCallback(async () => {
-    if (!validAddress || !solverResult || solverResult.kind !== "cleared" || !publicClient || !issuanceState.params)
+    if (
+      !validAddress || !solverResult || solverResult.kind !== "cleared" ||
+      !publicClient || !issuanceState.params || !walletAddress
+    )
       return;
     if (!targetIsTrusted) {
       setTxError("This contract was not created by the Iceburg factory — refusing to approve or submit to it.");
@@ -166,23 +171,25 @@ export function ClearingWorkbench() {
       const minBond = issuanceState.params.minBond;
 
       if (minBond > 0n && paymentTokenAddress && (!bondAllowance || bondAllowance < minBond)) {
-        const appHash = await writeContractAsync({
+        const approveParams = {
           address: paymentTokenAddress,
-          abi: DemoUSDAbi,
+          abi: DemoUSDAbi as Abi,
           functionName: "approve",
           args: [validAddress, minBond * 10n],
-        });
-        await publicClient.waitForTransactionReceipt({ hash: appHash });
+        };
+        const appHash = await writeContractAsync(approveParams);
+        await waitForSuccessfulReceipt(publicClient, appHash, approveParams, walletAddress);
       }
 
-      const hash = await writeContractAsync({
+      const callParams = {
         address: validAddress,
-        abi: IssuanceAbi,
+        abi: IssuanceAbi as Abi,
         functionName: "challengeClearing",
         args: [solverResult.price, allocationsArray, minBond],
-      });
+      };
+      const hash = await writeContractAsync(callParams);
 
-      await publicClient.waitForTransactionReceipt({ hash });
+      await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
       await issuanceState.refetch();
     } catch (err) {
       setTxError(getRevertReason(err));
@@ -193,6 +200,7 @@ export function ClearingWorkbench() {
     validAddress,
     solverResult,
     publicClient,
+    walletAddress,
     issuanceState,
     bondAllowance,
     writeContractAsync,

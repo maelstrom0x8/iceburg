@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
-import { useWriteContract, usePublicClient, useReadContract } from "wagmi";
+import { useAccount, useWriteContract, usePublicClient, useReadContract } from "wagmi";
 import { useState, useCallback } from "react";
+import type { Abi } from "viem";
 import { IssuanceAbi } from "../../../contracts";
 import { useIssuanceContext } from "../context/IssuanceContext";
 import { formatAmount, formatPrice } from "../../../lib/format";
 import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
 import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
 import { getRevertReason } from "../../../lib/revertReasons";
+import { waitForSuccessfulReceipt } from "../../../lib/waitForSuccessfulReceipt";
 import { CountdownTimer } from "../../../components/ui/CountdownTimer";
 
 const CARD = {
@@ -21,6 +23,7 @@ const INSET = {
 
 export function ClearingPendingPanel() {
   const { address, params, state, refetch } = useIssuanceContext();
+  const { address: walletAddress } = useAccount();
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
   const { decimals } = usePaymentTokenDecimals();
@@ -36,42 +39,36 @@ export function ClearingPendingPanel() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleCloseRevealWindow = useCallback(async () => {
-    if (!publicClient) return;
+    if (!publicClient || !walletAddress) return;
     setClosing(true);
     setErrorMsg(null);
     try {
-      const hash = await writeContractAsync({
-        address,
-        abi: IssuanceAbi,
-        functionName: "closeRevealWindow",
-      });
-      await publicClient.waitForTransactionReceipt({ hash });
+      const callParams = { address, abi: IssuanceAbi as Abi, functionName: "closeRevealWindow" };
+      const hash = await writeContractAsync(callParams);
+      await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
       await refetch();
     } catch (err) {
       setErrorMsg(getRevertReason(err));
     } finally {
       setClosing(false);
     }
-  }, [address, publicClient, refetch, writeContractAsync]);
+  }, [address, publicClient, walletAddress, refetch, writeContractAsync]);
 
   const handleCancelStalledClearing = useCallback(async () => {
-    if (!publicClient) return;
+    if (!publicClient || !walletAddress) return;
     setCancelling(true);
     setErrorMsg(null);
     try {
-      const hash = await writeContractAsync({
-        address,
-        abi: IssuanceAbi,
-        functionName: "cancelStalledClearing",
-      });
-      await publicClient.waitForTransactionReceipt({ hash });
+      const callParams = { address, abi: IssuanceAbi as Abi, functionName: "cancelStalledClearing" };
+      const hash = await writeContractAsync(callParams);
+      await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
       await refetch();
     } catch (err) {
       setErrorMsg(getRevertReason(err));
     } finally {
       setCancelling(false);
     }
-  }, [address, publicClient, refetch, writeContractAsync]);
+  }, [address, publicClient, walletAddress, refetch, writeContractAsync]);
 
   const now = BigInt(Math.floor(Date.now() / 1000));
   const canCloseReveal =

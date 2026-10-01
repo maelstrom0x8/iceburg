@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
-import { useWriteContract, usePublicClient } from "wagmi";
+import { useAccount, useWriteContract, usePublicClient } from "wagmi";
 import { useState, useCallback } from "react";
+import type { Abi } from "viem";
 import { IssuanceAbi } from "../../../contracts";
 import { useIssuanceContext } from "../context/IssuanceContext";
 import { getRevertReason } from "../../../lib/revertReasons";
+import { waitForSuccessfulReceipt } from "../../../lib/waitForSuccessfulReceipt";
 import { formatPrice } from "../../../lib/format";
 import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
 import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
@@ -21,6 +23,7 @@ const INSET = {
 
 export function ChallengePanel() {
   const { address, standingProposal, state, refetch } = useIssuanceContext();
+  const { address: walletAddress } = useAccount();
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
   const { decimals } = usePaymentTokenDecimals();
@@ -30,23 +33,20 @@ export function ChallengePanel() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleCloseChallengeWindow = useCallback(async () => {
-    if (!publicClient) return;
+    if (!publicClient || !walletAddress) return;
     setClosing(true);
     setErrorMsg(null);
     try {
-      const hash = await writeContractAsync({
-        address,
-        abi: IssuanceAbi,
-        functionName: "closeChallengeWindow",
-      });
-      await publicClient.waitForTransactionReceipt({ hash });
+      const callParams = { address, abi: IssuanceAbi as Abi, functionName: "closeChallengeWindow" };
+      const hash = await writeContractAsync(callParams);
+      await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
       await refetch();
     } catch (err) {
       setErrorMsg(getRevertReason(err));
     } finally {
       setClosing(false);
     }
-  }, [address, publicClient, refetch, writeContractAsync]);
+  }, [address, publicClient, walletAddress, refetch, writeContractAsync]);
 
   const now = BigInt(Math.floor(Date.now() / 1000));
   const canCloseChallenge =
