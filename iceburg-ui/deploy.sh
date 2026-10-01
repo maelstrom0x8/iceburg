@@ -21,25 +21,28 @@ set -euo pipefail
 # the CLI reads these itself, no flags needed. Otherwise falls back to
 # --scope/--project against an interactively-logged-in local CLI session.
 #
-# Must run with the "iceburg" Vercel project's own Root Directory setting
-# cleared (Settings -> General -> Root Directory -> blank) — this script
-# already cd's into iceburg-ui and uploads from there, so a Root Directory
-# of "iceburg-ui" on top of that resolves to a path that doesn't exist.
+# Runs from the repo root, not iceburg-ui/ — the "iceburg" Vercel project
+# has its own Root Directory set to iceburg-ui, so the upload needs to
+# actually contain an iceburg-ui/ folder for that to resolve. The repo
+# root's .vercelignore keeps that upload scoped to what's needed (skips
+# contracts/, docs/, etc.) rather than the whole monorepo.
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 ALIAS_HOST="${VITE_APP_ALIAS:-iceburg.iohaus.vercel.app}"
 
-VERCEL_ARGS=()
+SCOPE_ARGS=()
+DEPLOY_ARGS=()
 if [[ -z "${VERCEL_ORG_ID:-}" || -z "${VERCEL_PROJECT_ID:-}" ]]; then
-  VERCEL_ARGS+=(--scope iohaus --project iceburg)
+  SCOPE_ARGS+=(--scope iohaus)
+  DEPLOY_ARGS+=(--scope iohaus --project iceburg)
 fi
 
 DEPLOY_OUTPUT=$(vercel deploy \
   --target preview \
   --yes \
   --json \
-  "${VERCEL_ARGS[@]}")
+  "${DEPLOY_ARGS[@]}")
 
 DEPLOYMENT_URL=$(echo "$DEPLOY_OUTPUT" | jq -r '.deployment.url // .url')
 DEPLOYMENT_URL="${DEPLOYMENT_URL#https://}"
@@ -52,6 +55,6 @@ fi
 
 echo "Deployed: https://${DEPLOYMENT_URL}"
 
-vercel alias set "https://${DEPLOYMENT_URL}" "$ALIAS_HOST" "${VERCEL_ARGS[@]}"
+vercel alias set "https://${DEPLOYMENT_URL}" "$ALIAS_HOST" "${SCOPE_ARGS[@]}"
 
 echo "Aliased: https://${ALIAS_HOST}"
