@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Deploys the marketing site or the app to Vercel as a Preview deployment.
+# Deploys the marketing site or the app to Vercel as a Preview deployment,
+# then re-points the stable iceburg-marketing.vercel.app / iceburg-app.vercel.app
+# alias at it. Vercel's own domain auto-promotion only applies to --prod
+# deploys (see `vercel deploy --skip-domain` help text), so a plain preview
+# deploy never updates that alias on its own — without this step the stable
+# URL silently keeps serving whatever was last aliased, no matter how many
+# times this script runs.
 #
 # Usage:
 #   ./deploy.sh app
@@ -29,17 +35,36 @@ MARKETING_URL="${VITE_MARKETING_URL:-https://iceburg-marketing.vercel.app}"
 APP_URL="${VITE_APP_URL:-https://iceburg-app.vercel.app}"
 
 if [[ "$TARGET" == "app" ]]; then
-  vercel deploy \
-    --local-config vercel.app.json \
-    --project iceburg-app \
-    --target preview \
-    --build-env "VITE_MARKETING_URL=${MARKETING_URL}" \
-    --yes
+  PROJECT="iceburg-app"
+  LOCAL_CONFIG="vercel.app.json"
+  ALIAS_HOST="${APP_URL#https://}"
+  BUILD_ENV="VITE_MARKETING_URL=${MARKETING_URL}"
 else
-  vercel deploy \
-    --local-config vercel.marketing.json \
-    --project iceburg-marketing \
-    --target preview \
-    --build-env "VITE_APP_URL=${APP_URL}" \
-    --yes
+  PROJECT="iceburg-marketing"
+  LOCAL_CONFIG="vercel.marketing.json"
+  ALIAS_HOST="${MARKETING_URL#https://}"
+  BUILD_ENV="VITE_APP_URL=${APP_URL}"
 fi
+
+DEPLOY_OUTPUT=$(vercel deploy \
+  --local-config "$LOCAL_CONFIG" \
+  --project "$PROJECT" \
+  --target preview \
+  --build-env "$BUILD_ENV" \
+  --yes \
+  --json)
+
+DEPLOYMENT_URL=$(echo "$DEPLOY_OUTPUT" | jq -r '.deployment.url // .url')
+DEPLOYMENT_URL="${DEPLOYMENT_URL#https://}"
+
+if [[ -z "$DEPLOYMENT_URL" || "$DEPLOYMENT_URL" == "null" ]]; then
+  echo "Deploy succeeded but couldn't parse the deployment URL out of:" >&2
+  echo "$DEPLOY_OUTPUT" >&2
+  exit 1
+fi
+
+echo "Deployed: https://${DEPLOYMENT_URL}"
+
+vercel alias set "https://${DEPLOYMENT_URL}" "$ALIAS_HOST"
+
+echo "Aliased: https://${ALIAS_HOST}"
