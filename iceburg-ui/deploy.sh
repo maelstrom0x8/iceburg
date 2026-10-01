@@ -22,8 +22,8 @@ set -euo pipefail
 # ever change:
 #   VITE_MARKETING_URL=https://... VITE_APP_URL=https://... ./deploy.sh app
 #
-# Picks up VERCEL_TOKEN from the environment if set (CI), otherwise relies
-# on an interactively-logged-in local Vercel CLI session, same as before.
+# Picks up VERCEL_ICEBURG_TOKEN from the environment if set (CI), otherwise
+# relies on an interactively-logged-in local Vercel CLI session, same as before.
 
 TARGET="${1:-}"
 
@@ -38,8 +38,8 @@ MARKETING_URL="${VITE_MARKETING_URL:-https://iceburg-marketing.vercel.app}"
 APP_URL="${VITE_APP_URL:-https://iceburg-app.vercel.app}"
 
 VERCEL_ARGS=(--scope iohaus)
-if [[ -n "${VERCEL_TOKEN:-}" ]]; then
-  VERCEL_ARGS+=(--token "$VERCEL_TOKEN")
+if [[ -n "${VERCEL_ICEBURG_TOKEN:-}" ]]; then
+  VERCEL_ARGS+=(--token "$VERCEL_ICEBURG_TOKEN")
 fi
 
 if [[ "$TARGET" == "app" ]]; then

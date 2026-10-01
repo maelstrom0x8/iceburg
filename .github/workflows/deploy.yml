@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*.*.*"
+      - "!v*.*.*-*"
 
 jobs:
   deploy:
@@ -25,9 +26,9 @@ jobs:
       - run: npm i -g vercel@latest
       - name: Deploy marketing
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ICEBURG_TOKEN: ${{ secrets.VERCEL_ICEBURG_TOKEN }}
         run: ./deploy.sh marketing
       - name: Deploy app
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ICEBURG_TOKEN: ${{ secrets.VERCEL_ICEBURG_TOKEN }}
         run: ./deploy.sh app
