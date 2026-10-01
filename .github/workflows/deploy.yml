@@ -26,5 +26,8 @@ jobs:
       - run: npm i -g vercel@latest
       - name: Deploy
         env:
-          VERCEL_ICEBURG_TOKEN: ${{ secrets.VERCEL_ICEBURG_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_ICEBURG_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: ./deploy.sh
