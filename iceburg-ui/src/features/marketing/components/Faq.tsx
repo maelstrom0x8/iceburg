@@ -1,32 +1,46 @@
 const ENTRIES = [
   {
-    q: "How is the price computed?",
-    a: "From the confirmed bids, against the terms the issuer fixed before bidding opened. Anyone can run the same computation and check the outcome — it isn't a person's judgment call. In the example offering, demand alone crosses supply at $7.00, but that would leave too few distinct holders — the floor pulls the price down to admit one more, landing at $6.50.",
+    q: "How is the clearing price decided?",
+    a: "It is computed from the confirmed bids against the terms the issuer fixed before bidding opened. The computation is public, so anyone can run it and check the result. Nobody adjusts the price by hand.",
   },
   {
     q: "What if I'm not filled?",
-    a: "Your full deposit is refunded automatically. Nothing is held back, and there's no manual step where someone has to decide to return it.",
+    a: "Any part of your deposit that isn't used for your purchase is returned to you. If you receive nothing, your full deposit comes back. Refunds and proceeds are credited to your balance and released when you press Claim on the offering page.",
   },
   {
     q: "Can the issuer change the terms after bidding starts?",
-    a: "No. Floor price, the concentration cap, and the holder minimum are fixed at launch and can't be loosened afterward, no matter what the bids look like.",
+    a: "No. Supply, the reserve price, the per-bidder cap, the minimum number of holders, and the bond amount are fixed at launch and cannot be changed afterward.",
   },
   {
-    q: "What happens if an outcome looks wrong?",
-    a: "During the challenge window, anyone can submit a better outcome and earn the deposit posted by the original proposal. Only an outcome nobody manages to beat within that window settles.",
+    q: "What happens if a result looks wrong?",
+    a: "During the challenge window, anyone can submit a better result. If it beats the standing result, it replaces it, and the bond posted by the earlier proposal goes to the person who submitted the improvement. Only a result nobody beats within the window settles.",
   },
   {
-    q: "Who decides if I'm allowed to bid?",
-    a: "Iceburg computes the price and allocations. It doesn't decide eligibility — that's a check handled by an approved compliance partner before a bid can be confirmed.",
+    q: "Who decides whether I can bid?",
+    a: "Iceburg does not decide eligibility. Each offering names approved attestors, and a bid can only be revealed with a valid, unexpired attestation from one of them.",
+  },
+  {
+    q: "What do I need to place a bid?",
+    a: "A wallet on a supported network and enough of the offering's payment token to cover your deposit and the required bond. Network gas is paid in the network's native token.",
+  },
+  {
+    q: "What is the bond?",
+    a: "A refundable amount posted with each bid. It is returned when you reveal your bid. If you commit and never reveal, the bond is forfeited to the issuer.",
+  },
+  {
+    q: "Can I cancel a bid after committing?",
+    a: "Not in the current release. A commitment cannot be withdrawn. To recover your bond, reveal the bid during the reveal window.",
+  },
+  {
+    q: "Which networks are supported?",
+    a: "Arbitrum Sepolia and the Robinhood Chain testnet are live today. Arbitrum One and Robinhood Chain mainnet are planned.",
+  },
+  {
+    q: "Has Iceburg been audited?",
+    a: "Not yet by an independent third party. Read the known risks in the documentation before committing funds.",
   },
 ];
 
-/**
- * Collapsed-by-default accordion, native <details>/<summary> — free
- * keyboard and screen-reader semantics, no custom ARIA state to get
- * wrong. This is where remaining depth lives, per the Aave reference:
- * everything that would otherwise be visible running prose moves here.
- */
 export function Faq() {
   return (
     <div className="divide-y" style={{ borderColor: "var(--color-app-border)" }}>

@@ -25,3 +25,5 @@ contracts/.env
 .idea/
 .DS_Store
 tmp
+# Local engineering directive, not versioned
+CLAUDE.md

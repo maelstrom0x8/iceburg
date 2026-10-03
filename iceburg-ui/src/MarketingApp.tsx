@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { MarketingLayout } from "./components/layout/MarketingLayout";
 import { About } from "./pages/About";
+import { FaqPage } from "./pages/FaqPage";
+import { HelpPage } from "./pages/HelpPage";
 import { Home } from "./pages/Home";
 import { StatusPage } from "./pages/StatusPage";
 import { hasSeenLanding, markLandingSeen } from "./lib/landingGate";
@@ -23,26 +25,8 @@ function MarketingApp() {
       <Route element={<MarketingLayout />}>
         <Route path="/" element={<LandingGate />} />
         <Route path="/about" element={<About />} />
-        <Route
-          path="/faq"
-          element={
-            <StatusPage
-              eyebrow="FAQs"
-              title="Frequently asked questions"
-              description="Answers to common questions are on the way."
-            />
-          }
-        />
-        <Route
-          path="/help"
-          element={
-            <StatusPage
-              eyebrow="Help"
-              title="Help and support"
-              description="Our support center is under construction."
-            />
-          }
-        />
+        <Route path="/faq" element={<FaqPage />} />
+        <Route path="/help" element={<HelpPage />} />
         <Route
           path="*"
           element={
