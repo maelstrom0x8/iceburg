@@ -8,6 +8,7 @@ import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals"
 import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
 import { getRevertReason } from "../../../lib/revertReasons";
 import { waitForSuccessfulReceipt } from "../../../lib/waitForSuccessfulReceipt";
+import { writeWithFeeBuffer } from "../../../lib/writeWithFeeBuffer";
 
 const INSET = {
   background: "var(--color-app-surface-2)",
@@ -42,7 +43,7 @@ function ClaimSection({ issuanceAddress }: { issuanceAddress: `0x${string}` }) {
     setErrorMsg(null);
     try {
       const callParams = { address: issuanceAddress, abi: IssuanceAbi as Abi, functionName: "claim" };
-      const hash = await writeContractAsync(callParams);
+      const hash = await writeWithFeeBuffer(writeContractAsync, publicClient, callParams);
       await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
       await refetchClaimable();
     } catch (err) {
@@ -127,7 +128,7 @@ export function SettledPanel() {
     setErrorMsg(null);
     try {
       const callParams = { address, abi: IssuanceAbi as Abi, functionName: "cancelUnresolved" };
-      const hash = await writeContractAsync(callParams);
+      const hash = await writeWithFeeBuffer(writeContractAsync, publicClient, callParams);
       await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
       await refetch();
     } catch (err) {
@@ -143,7 +144,7 @@ export function SettledPanel() {
     setErrorMsg(null);
     try {
       const callParams = { address, abi: IssuanceAbi as Abi, functionName: "settle" };
-      const hash = await writeContractAsync(callParams);
+      const hash = await writeWithFeeBuffer(writeContractAsync, publicClient, callParams);
       await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
       await refetch();
     } catch (err) {

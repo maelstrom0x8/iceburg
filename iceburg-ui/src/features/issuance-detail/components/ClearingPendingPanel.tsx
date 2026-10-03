@@ -9,6 +9,7 @@ import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals"
 import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
 import { getRevertReason } from "../../../lib/revertReasons";
 import { waitForSuccessfulReceipt } from "../../../lib/waitForSuccessfulReceipt";
+import { writeWithFeeBuffer } from "../../../lib/writeWithFeeBuffer";
 import { CountdownTimer } from "../../../components/ui/CountdownTimer";
 
 const CARD = {
@@ -44,7 +45,7 @@ export function ClearingPendingPanel() {
     setErrorMsg(null);
     try {
       const callParams = { address, abi: IssuanceAbi as Abi, functionName: "closeRevealWindow" };
-      const hash = await writeContractAsync(callParams);
+      const hash = await writeWithFeeBuffer(writeContractAsync, publicClient, callParams);
       await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
       await refetch();
     } catch (err) {
@@ -60,7 +61,7 @@ export function ClearingPendingPanel() {
     setErrorMsg(null);
     try {
       const callParams = { address, abi: IssuanceAbi as Abi, functionName: "cancelStalledClearing" };
-      const hash = await writeContractAsync(callParams);
+      const hash = await writeWithFeeBuffer(writeContractAsync, publicClient, callParams);
       await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
       await refetch();
     } catch (err) {

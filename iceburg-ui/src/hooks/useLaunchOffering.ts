@@ -4,6 +4,7 @@ import { parseEventLogs, zeroAddress, type Abi } from "viem";
 import { IssuanceFactoryAbi, IssuanceFactoryAddressByChain, useContractAddress } from "../contracts";
 import { usePaymentTokenAddress } from "../config/paymentToken";
 import { waitForSuccessfulReceipt } from "../lib/waitForSuccessfulReceipt";
+import { writeWithFeeBuffer } from "../lib/writeWithFeeBuffer";
 
 export interface LaunchFormValues {
   supply: bigint;
@@ -76,7 +77,7 @@ export function useLaunchOffering(): {
             form.tokenSymbol,
           ],
         };
-        const hash = await writeContractAsync(callParams);
+        const hash = await writeWithFeeBuffer(writeContractAsync, publicClient, callParams);
 
         const receipt = await waitForSuccessfulReceipt(publicClient, hash, callParams, connectedAddress);
 

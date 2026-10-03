@@ -15,6 +15,7 @@ import { StateBadge } from "../../../components/ui/StateBadge";
 import { formatAmount, formatPrice } from "../../../lib/format";
 import { getRevertReason } from "../../../lib/revertReasons";
 import { waitForSuccessfulReceipt } from "../../../lib/waitForSuccessfulReceipt";
+import { writeWithFeeBuffer } from "../../../lib/writeWithFeeBuffer";
 
 export function ClearingWorkbench() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -113,7 +114,7 @@ export function ClearingWorkbench() {
           functionName: "approve",
           args: [validAddress, minBond * 10n],
         };
-        const appHash = await writeContractAsync(approveParams);
+        const appHash = await writeWithFeeBuffer(writeContractAsync, publicClient, approveParams);
         await waitForSuccessfulReceipt(publicClient, appHash, approveParams, walletAddress);
       }
 
@@ -131,7 +132,7 @@ export function ClearingWorkbench() {
               functionName: "proposeClearing",
               args: [solverResult.price, allocationsArray, minBond],
             };
-      const hash = await writeContractAsync(callParams);
+      const hash = await writeWithFeeBuffer(writeContractAsync, publicClient, callParams);
 
       await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
       await issuanceState.refetch();
@@ -177,7 +178,7 @@ export function ClearingWorkbench() {
           functionName: "approve",
           args: [validAddress, minBond * 10n],
         };
-        const appHash = await writeContractAsync(approveParams);
+        const appHash = await writeWithFeeBuffer(writeContractAsync, publicClient, approveParams);
         await waitForSuccessfulReceipt(publicClient, appHash, approveParams, walletAddress);
       }
 
@@ -187,7 +188,7 @@ export function ClearingWorkbench() {
         functionName: "challengeClearing",
         args: [solverResult.price, allocationsArray, minBond],
       };
-      const hash = await writeContractAsync(callParams);
+      const hash = await writeWithFeeBuffer(writeContractAsync, publicClient, callParams);
 
       await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
       await issuanceState.refetch();

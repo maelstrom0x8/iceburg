@@ -5,6 +5,7 @@ import { IssuanceAbi } from "../../../contracts";
 import { useIssuanceContext } from "../context/IssuanceContext";
 import { getRevertReason } from "../../../lib/revertReasons";
 import { waitForSuccessfulReceipt } from "../../../lib/waitForSuccessfulReceipt";
+import { writeWithFeeBuffer } from "../../../lib/writeWithFeeBuffer";
 
 // ── Local storage helpers ─────────────────────────────────────────────────────
 
@@ -101,7 +102,7 @@ export function RevealPanel() {
             attestationSignature,
           ],
         };
-        const hash = await writeContractAsync(callParams);
+        const hash = await writeWithFeeBuffer(writeContractAsync, publicClient, callParams);
         await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
         setTxHash(hash);
         setPhase("done");

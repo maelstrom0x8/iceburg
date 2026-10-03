@@ -9,6 +9,7 @@ import { useSponsoredKernelClient } from "../../../hooks/useSponsoredKernelClien
 import { formatPrice } from "../../../lib/format";
 import { getRevertReason } from "../../../lib/revertReasons";
 import { waitForSuccessfulReceipt } from "../../../lib/waitForSuccessfulReceipt";
+import { writeWithFeeBuffer } from "../../../lib/writeWithFeeBuffer";
 
 // ── Local storage key for stored bids ────────────────────────────────────────
 
@@ -91,14 +92,7 @@ export function CommitPanel() {
         const sponsoredClient = await getSponsoredClient();
         return sponsoredClient.writeContract({ ...params, chain: undefined });
       }
-      if (!publicClient) return writeContractAsync(params);
-
-      const { maxFeePerGas, maxPriorityFeePerGas } = await publicClient.estimateFeesPerGas();
-      return writeContractAsync({
-        ...params,
-        maxFeePerGas: (maxFeePerGas * 125n) / 100n,
-        maxPriorityFeePerGas: (maxPriorityFeePerGas * 125n) / 100n,
-      });
+      return writeWithFeeBuffer(writeContractAsync, publicClient, params);
     },
     [sponsoredGas, getSponsoredClient, writeContractAsync, publicClient],
   );

@@ -6,6 +6,7 @@ import { IssuanceAbi } from "../../../contracts";
 import { useIssuanceContext } from "../context/IssuanceContext";
 import { getRevertReason } from "../../../lib/revertReasons";
 import { waitForSuccessfulReceipt } from "../../../lib/waitForSuccessfulReceipt";
+import { writeWithFeeBuffer } from "../../../lib/writeWithFeeBuffer";
 import { formatPrice } from "../../../lib/format";
 import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
 import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
@@ -38,7 +39,7 @@ export function ChallengePanel() {
     setErrorMsg(null);
     try {
       const callParams = { address, abi: IssuanceAbi as Abi, functionName: "closeChallengeWindow" };
-      const hash = await writeContractAsync(callParams);
+      const hash = await writeWithFeeBuffer(writeContractAsync, publicClient, callParams);
       await waitForSuccessfulReceipt(publicClient, hash, callParams, walletAddress);
       await refetch();
     } catch (err) {
