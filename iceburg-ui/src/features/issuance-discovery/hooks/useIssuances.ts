@@ -1,7 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { usePublicClient } from "wagmi";
+import { useChainId, usePublicClient } from "wagmi";
 import { parseEventLogs } from "viem";
 import { IssuanceFactoryAbi, IssuanceFactoryAddressByChain, useContractAddress } from "../../../contracts";
+
+const ISSUANCE_FACTORY_DEPLOY_BLOCK: Record<number, bigint> = {
+  421614: 314065502n,
+  46630: 126373265n,
+};
 
 export interface IssuanceSummary {
   issuanceAddress: `0x${string}`;
@@ -27,10 +32,12 @@ export function useIssuances(): {
   refetch: () => void;
 } {
   const publicClient = usePublicClient();
+  const chainId = useChainId();
   const issuanceFactoryAddress = useContractAddress(IssuanceFactoryAddressByChain);
+  const fromBlock = ISSUANCE_FACTORY_DEPLOY_BLOCK[chainId] ?? 0n;
 
   const query = useQuery({
-    queryKey: ["issuances", issuanceFactoryAddress],
+    queryKey: ["issuances", chainId, issuanceFactoryAddress],
     enabled: !!publicClient && !!issuanceFactoryAddress,
     staleTime: 30_000,
     queryFn: async (): Promise<IssuanceSummary[]> => {
@@ -38,7 +45,7 @@ export function useIssuances(): {
 
       const logs = await publicClient.getLogs({
         address: issuanceFactoryAddress,
-        fromBlock: 0n,
+        fromBlock,
         toBlock: "latest",
       });
 
