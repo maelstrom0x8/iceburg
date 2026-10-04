@@ -6,8 +6,10 @@ import { CountdownTimer } from "../../../components/ui/CountdownTimer";
 import { formatAmount, formatPrice, formatTimestamp } from "../../../lib/format";
 import { usePaymentTokenDecimals } from "../../../hooks/usePaymentTokenDecimals";
 import { usePaymentTokenSymbol } from "../../../hooks/usePaymentTokenSymbol";
+import { useNowSeconds } from "../../../hooks/useNowSeconds";
 import { ISSUANCE_STATE } from "../../../lib/issuanceStage";
 import { CommitPanel } from "./CommitPanel";
+import { CloseCommitWindowPanel } from "./CloseCommitWindowPanel";
 import { RevealPanel } from "./RevealPanel";
 import { ClearingPendingPanel } from "./ClearingPendingPanel";
 import { ChallengePanel } from "./ChallengePanel";
@@ -45,6 +47,7 @@ export function IssuanceDetail() {
 
   const { decimals: paymentDecimals } = usePaymentTokenDecimals();
   const { symbol: paymentSymbol } = usePaymentTokenSymbol();
+  const now = useNowSeconds();
 
   if (isLoading && state === undefined) {
     return (
@@ -63,6 +66,11 @@ export function IssuanceDetail() {
   let activeDeadline: bigint | undefined;
   if (state === ISSUANCE_STATE.COMMIT_OPEN) activeDeadline = params?.commitWindowEnd;
   else if (state === ISSUANCE_STATE.REVEAL_OPEN) activeDeadline = params?.revealWindowEnd;
+
+  const commitWindowElapsed =
+    state === ISSUANCE_STATE.COMMIT_OPEN && params !== undefined && now >= params.commitWindowEnd;
+  const revealWindowElapsed =
+    state === ISSUANCE_STATE.REVEAL_OPEN && params !== undefined && now >= params.revealWindowEnd;
 
   const tokenLabel = tokenName && tokenSymbol
     ? `${String(tokenName)} · ${String(tokenSymbol)}`
@@ -98,8 +106,10 @@ export function IssuanceDetail() {
         </div>
 
         {/* State-specific action panel */}
-        {state === ISSUANCE_STATE.COMMIT_OPEN && <CommitPanel />}
-        {state === ISSUANCE_STATE.REVEAL_OPEN && <RevealPanel />}
+        {state === ISSUANCE_STATE.COMMIT_OPEN &&
+          (commitWindowElapsed ? <CloseCommitWindowPanel /> : <CommitPanel />)}
+        {state === ISSUANCE_STATE.REVEAL_OPEN &&
+          (revealWindowElapsed ? <ClearingPendingPanel /> : <RevealPanel />)}
         {state === ISSUANCE_STATE.CLEARING_PENDING && <ClearingPendingPanel />}
         {state === ISSUANCE_STATE.CHALLENGE_OPEN && <ChallengePanel />}
         {(state === ISSUANCE_STATE.SETTLED || state === ISSUANCE_STATE.CANCELLED) && (

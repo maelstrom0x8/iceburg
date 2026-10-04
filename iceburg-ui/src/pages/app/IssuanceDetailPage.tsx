@@ -1,41 +1,21 @@
 import { useParams } from "react-router-dom";
 import { isAddress } from "viem";
 import { useReadContract } from "wagmi";
-import { IssuanceProvider } from "../../features/issuance-detail/context/IssuanceContext";
+import { IssuanceProvider, useIssuanceContext } from "../../features/issuance-detail/context/IssuanceContext";
 import { IssuanceDetail } from "../../features/issuance-detail/components/IssuanceDetail";
 import { AppSubHeader } from "../../components/layout/AppSubHeader";
-import { IssuanceAbi, SecurityTokenAbi } from "../../contracts";
+import { SecurityTokenAbi } from "../../contracts";
 import { StateBadge } from "../../components/ui/StateBadge";
 import { usePaymentTokenDecimals } from "../../hooks/usePaymentTokenDecimals";
 import { usePaymentTokenSymbol } from "../../hooks/usePaymentTokenSymbol";
 import { useIsTrustedIssuance } from "../../features/issuance-discovery/hooks/useIsTrustedIssuance";
 import { formatPrice } from "../../lib/format";
 
-function DetailPageHeader({ address }: { address: `0x${string}` }) {
-  const { data: state } = useReadContract({
-    address,
-    abi: IssuanceAbi,
-    functionName: "state",
-  });
+function DetailPageHeader() {
+  const { address, state, params, bidCount } = useIssuanceContext();
 
-  const { data: rawParams } = useReadContract({
-    address,
-    abi: IssuanceAbi,
-    functionName: "params",
-  });
-
-  const { data: bidCount } = useReadContract({
-    address,
-    abi: IssuanceAbi,
-    functionName: "bidCount",
-  });
-
-  const params = rawParams as
-    | readonly [bigint, bigint, number, number, bigint, `0x${string}`, `0x${string}`, bigint, bigint, bigint]
-    | undefined;
-
-  const securityTokenAddress = params?.[6];
-  const paymentTokenAddress = params?.[5];
+  const securityTokenAddress = params?.securityToken;
+  const paymentTokenAddress = params?.paymentToken;
 
   const { data: tokenName } = useReadContract({
     address: securityTokenAddress,
@@ -54,8 +34,7 @@ function DetailPageHeader({ address }: { address: `0x${string}` }) {
   const { decimals } = usePaymentTokenDecimals(paymentTokenAddress);
   const { symbol } = usePaymentTokenSymbol(paymentTokenAddress);
 
-  const stateNum = state !== undefined ? Number(state) : undefined;
-  const reservePrice = params ? params[1] : undefined;
+  const reservePrice = params?.reservePrice;
 
   const reserveStr = reservePrice !== undefined && decimals !== undefined
     ? `${formatPrice(reservePrice, decimals)}${symbol ? ` ${symbol}` : ""}`
@@ -76,7 +55,7 @@ function DetailPageHeader({ address }: { address: `0x${string}` }) {
       description={`Contract: ${address.slice(0, 10)}...${address.slice(-8)}`}
       backTo={{ label: "Back to Offerings", to: "/app/issuances" }}
       stats={[
-        { label: "State", value: <StateBadge state={stateNum} /> },
+        { label: "State", value: <StateBadge state={state} /> },
         { label: "Reserve Price", value: reserveStr },
         { label: "Bids Revealed", value: bidCount !== undefined ? bidCount.toString() : "—" },
       ]}
@@ -127,7 +106,7 @@ export function IssuanceDetailPage() {
 
   return (
     <IssuanceProvider address={validAddress}>
-      <DetailPageHeader address={validAddress} />
+      <DetailPageHeader />
       <div className="mx-auto max-w-screen-xl px-6 py-8">
         <IssuanceDetail />
       </div>
