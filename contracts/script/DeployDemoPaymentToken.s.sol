@@ -7,9 +7,14 @@ import {DemoUSD} from "./mocks/DemoUSD.sol";
 contract DeployDemoPaymentTokenScript is Script {
     uint256 constant MINT_AMOUNT = 1_000_000e6;
     uint256 constant ANVIL_CHAIN_ID = 31337;
+    uint256 constant ARBITRUM_SEPOLIA_CHAIN_ID = 421614;
 
     function run() public {
-        require(block.chainid == ANVIL_CHAIN_ID, "DeployDemoPaymentToken: local Anvil only");
+        bool isAnvil = block.chainid == ANVIL_CHAIN_ID;
+        require(
+            isAnvil || block.chainid == ARBITRUM_SEPOLIA_CHAIN_ID,
+            "DeployDemoPaymentToken: Anvil or Arbitrum Sepolia only"
+        );
 
         // Anvil's publicly-known default dev accounts — fine to mint demo
         // funds to locally; the guard above stops this from being mistaken
@@ -30,8 +35,10 @@ contract DeployDemoPaymentTokenScript is Script {
         vm.startBroadcast();
 
         DemoUSD token = new DemoUSD();
-        for (uint256 i = 0; i < anvilAccounts.length; i++) {
-            token.mint(anvilAccounts[i], MINT_AMOUNT);
+        if (isAnvil) {
+            for (uint256 i = 0; i < anvilAccounts.length; i++) {
+                token.mint(anvilAccounts[i], MINT_AMOUNT);
+            }
         }
 
         vm.stopBroadcast();
