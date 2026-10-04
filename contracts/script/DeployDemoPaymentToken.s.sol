@@ -8,12 +8,13 @@ contract DeployDemoPaymentTokenScript is Script {
     uint256 constant MINT_AMOUNT = 1_000_000e6;
     uint256 constant ANVIL_CHAIN_ID = 31337;
     uint256 constant ARBITRUM_SEPOLIA_CHAIN_ID = 421614;
+    uint256 constant ROBINHOOD_TESTNET_CHAIN_ID = 46630;
 
-    function run() public {
+    function run() public returns (DemoUSD token) {
         bool isAnvil = block.chainid == ANVIL_CHAIN_ID;
         require(
-            isAnvil || block.chainid == ARBITRUM_SEPOLIA_CHAIN_ID,
-            "DeployDemoPaymentToken: Anvil or Arbitrum Sepolia only"
+            isAnvil || block.chainid == ARBITRUM_SEPOLIA_CHAIN_ID || block.chainid == ROBINHOOD_TESTNET_CHAIN_ID,
+            "DeployDemoPaymentToken: Anvil or a supported testnet only"
         );
 
         // Anvil's publicly-known default dev accounts — fine to mint demo
@@ -34,7 +35,7 @@ contract DeployDemoPaymentTokenScript is Script {
 
         vm.startBroadcast();
 
-        DemoUSD token = new DemoUSD();
+        token = new DemoUSD();
         if (isAnvil) {
             for (uint256 i = 0; i < anvilAccounts.length; i++) {
                 token.mint(anvilAccounts[i], MINT_AMOUNT);

@@ -26,7 +26,7 @@ These items are on the roadmap and have not been built. Their order and scope ma
 
 #### Network availability
 
-- **Arbitrum One and Robinhood Chain mainnet.** USDG settlement addresses are configured for both networks, but no offering factory is deployed on either yet. Mainnet deployment will follow the same process used for the current testnets.
+- **Arbitrum One and Robinhood Chain mainnet.** No payment token is configured for either network and no offering factory is deployed on either yet. Mainnet deployment will follow the same process used for the current testnets.
 
 #### Bidding
 

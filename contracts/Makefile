@@ -42,13 +42,12 @@ bootstrap-local:
 	$(MAKE) deploy-local SCRIPT=DeployAttestorRegistry.s.sol:DeployAttestorRegistryScript
 	$(MAKE) deploy-local SCRIPT=DeployIssuanceFactory.s.sol:DeployIssuanceFactoryScript
 
-# No payment-token deploy on these — real USDG is already live there
-# (contracts/script/config/USDG.sol). Requires SEPOLIA_RPC_URL /
-# ROBINHOOD_TESTNET_RPC_URL and a funded PRIVATE_KEY in .env.
 bootstrap-arbitrum-sepolia:
-	$(MAKE) deploy SCRIPT=DeployAttestorRegistry.s.sol:DeployAttestorRegistryScript RPC_URL=$(SEPOLIA_RPC_URL)
-	$(MAKE) deploy SCRIPT=DeployIssuanceFactory.s.sol:DeployIssuanceFactoryScript RPC_URL=$(SEPOLIA_RPC_URL)
+	$(MAKE) deploy SCRIPT=DeployDemoPaymentToken.s.sol:DeployDemoPaymentTokenScript RPC_URL=$(ARB_SEPOLIA_RPC_URL)
+	$(MAKE) deploy SCRIPT=DeployAttestorRegistry.s.sol:DeployAttestorRegistryScript RPC_URL=$(ARB_SEPOLIA_RPC_URL)
+	$(MAKE) deploy SCRIPT=DeployIssuanceFactory.s.sol:DeployIssuanceFactoryScript RPC_URL=$(ARB_SEPOLIA_RPC_URL)
 
 bootstrap-robinhood-testnet:
+	$(MAKE) deploy SCRIPT=DeployDemoPaymentToken.s.sol:DeployDemoPaymentTokenScript RPC_URL=$(ROBINHOOD_TESTNET_RPC_URL)
 	$(MAKE) deploy SCRIPT=DeployAttestorRegistry.s.sol:DeployAttestorRegistryScript RPC_URL=$(ROBINHOOD_TESTNET_RPC_URL)
 	$(MAKE) deploy SCRIPT=DeployIssuanceFactory.s.sol:DeployIssuanceFactoryScript RPC_URL=$(ROBINHOOD_TESTNET_RPC_URL)

@@ -85,9 +85,9 @@ stated rules and get paid for catching a violation. Most "fair allocation"
 promises today are just that — promises. Here, breaking your own rules
 isn't a PR risk, it's a mechanism that costs you money.
 
-## Settling in USDG
+## Payment token
 
-Iceburg settles offerings in [USDG](https://docs.paxos.com/guides/stablecoin/usdg) (Global Dollar), Paxos' regulated, reserve-backed stablecoin — the native asset on Robinhood Chain, one of this project's named deployment targets. USDG, like other regulated stablecoins, can freeze or blocklist an individual address; `Issuance`'s settlement path (`settle()`, `cancelUnresolved()`, `closeRevealWindow()`) is built around that reality from the ground up — payouts accumulate in a claimable ledger and each party pulls their own, so one frozen address can never block anyone else's settlement or the auction's own progress. `contracts/test/fork/IssuanceUSDGFork.t.sol` runs Iceburg's full commit → reveal → clear → settle → claim lifecycle against the real, live USDG contract on Arbitrum Sepolia (`0xFFC95faa3d63Cde504a05B567C600B78C0b41892`), not a mock.
+Each offering settles in a single ERC-20 payment token, set per offering when it is created and not a protocol-level constant. Payouts accumulate in a claimable ledger and each party pulls their own, so one address that cannot receive a transfer, for example because a token restricts it, can never block anyone else's settlement or the auction's own progress. On the testnets, offerings use a free test token ("Demo USD", 6 decimals) deployed by `contracts/script/DeployDemoPaymentToken.s.sol`, which refuses to run on any network other than local Anvil and the supported testnets. No payment asset has been chosen for a mainnet deployment.
 
 ## How it works, at a glance
 
@@ -136,10 +136,10 @@ After changing a contract: `forge build` (or just re-run `make deploy-local SCRI
 
 ### Testnet / Robinhood Chain
 
-`contracts/`'s deploy scripts and `iceburg-ui`'s wagmi config both support Arbitrum Sepolia and Robinhood Chain (testnet id `46630`, mainnet id `4663`) alongside local anvil — no demo payment token deploy needed on either, since real USDG already exists there:
+`contracts/`'s deploy scripts and `iceburg-ui`'s wagmi config both support Arbitrum Sepolia and Robinhood Chain (testnet id `46630`, mainnet id `4663`) alongside local anvil. Each bootstrap target deploys the test payment token first, then the registry and the factory:
 
 ```
-make bootstrap-arbitrum-sepolia    # needs SEPOLIA_RPC_URL + a funded PRIVATE_KEY in .env
+make bootstrap-arbitrum-sepolia    # needs ARB_SEPOLIA_RPC_URL + a funded PRIVATE_KEY in .env
 make bootstrap-robinhood-testnet   # needs ROBINHOOD_TESTNET_RPC_URL + a funded PRIVATE_KEY in .env
 ```
 
@@ -153,7 +153,7 @@ Both route through a generic `make deploy SCRIPT=... RPC_URL=...` target — the
 
 ### Environment
 
-- `contracts/.env` (copy from `.env.example`) — local anvil private key by default; fill in `SEPOLIA_RPC_URL` (an Arbitrum Sepolia RPC endpoint) / `ETHERSCAN_API_KEY` for testnet deploys, or `ROBINHOOD_TESTNET_RPC_URL` for Robinhood Chain testnet. Setting `SEPOLIA_RPC_URL` also enables `test/fork/IssuanceUSDGFork.t.sol`, which is skipped otherwise.
+- `contracts/.env` (copy from `.env.example`) — local anvil private key by default; fill in `ARB_SEPOLIA_RPC_URL` (an Arbitrum Sepolia RPC endpoint) / `ETHERSCAN_API_KEY` for testnet deploys, or `ROBINHOOD_TESTNET_RPC_URL` for Robinhood Chain testnet.
 - `iceburg-ui/.env.local` (copy from `.env.example`) — `VITE_WALLETCONNECT_PROJECT_ID` from https://cloud.reown.com (needed for WalletConnect-based wallets; injected wallets like MetaMask work without it).
 
 ## License
